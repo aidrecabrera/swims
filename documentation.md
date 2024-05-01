@@ -2,6 +2,21 @@
 
 SWIMS (Smart Water Information Management System): The roadmap outlines key steps in developing SWIMS, focusing on sensor integration, data management, control implementation, testing, and documentation.
 
+```mermaid
+graph TD;
+    A[SWIMS Device] --> B(Buoyant Material)
+    B --> C[Water pH Sensor]
+    B --> D[Dissolved Oxygen Sensor]
+    B --> E[Temperature Sensor]
+    B --> F[Salinity Sensor]
+    A --> G(Control Panel)
+    G --> H[Raspberry Pi]
+    G --> I[GSM SIM800L]
+    G --> J[LED Screen]
+    G --> K[Battery]
+    G --> L[Solar Panel]
+    G --> M[Step-up Converter Module]
+```
 ### pH Module
 - [ ] Interface DFRobot pH sensor with UART communication protocol
 - [ ] Develop pH reading function with temperature compensation
