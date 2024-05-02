@@ -8,12 +8,7 @@ from log.logger import SensorDataLogger
 import time
 
 def clear_screen():
-    # Windows   
-    if os.name == 'nt':
-        os.system('cls')
-    # Linux and macOS
-    else:
-        os.system('clear')
+    os.system('clear')
 
 ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=2)
 
@@ -26,27 +21,26 @@ class SensorData:
 
 data = SensorData(0, 0, 0, 0)
 
-# Create a Tkinter window
+# tkinter window
 root = Tk()
 root.title("Sensor Data")
 
-# Set the window to fullscreen mode
+# fullscreen mode
 root.attributes("-fullscreen", True)
 
-# Create a frame to hold the labels
+# frame to hold the labels
 frame = Frame(root, bg="white")
 frame.pack(expand=True, fill="both")
 
-# Create a custom font for labels
 label_font = Font(family="Arial", size=24, weight="bold")
 
-# Create StringVar for each sensor data
+# StringVar for each sensor data
 temp_var = StringVar()
 pH_var = StringVar()
 dOxygen_var = StringVar()
 salinity_var = StringVar()
 
-# Create labels for each sensor data
+# labels for each sensor data
 Label(frame, textvariable=temp_var, font=label_font, bg="white").pack(pady=20)
 Label(frame, textvariable=pH_var, font=label_font, bg="white").pack(pady=20)
 Label(frame, textvariable=dOxygen_var, font=label_font, bg="white").pack(pady=20)
@@ -82,7 +76,7 @@ def update_data():
             for log in logs:
                 print(log)
 
-        # Update the StringVar with the new data
+        # update StringVar with new data
         temp_var.set(f'Temperature: {data.temperature}°C')
         pH_var.set(f'pH: {data.pH}')
         dOxygen_status = "N/A"
@@ -100,11 +94,9 @@ def update_data():
         dOxygen_var.set(f'Dissolved Oxygen: {data.dOxygen} mg/L ({dOxygen_status})')
         salinity_var.set(f'Salinity: {data.salinity} ppt')
 
-    # Update the data every 1000ms
     root.after(1000, update_data)
 
-# Start updating data
+# update data
 update_data()
-
-# Start the Tkinter event loop
+# tkinter event loopa
 root.mainloop()
