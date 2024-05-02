@@ -1,3 +1,5 @@
+#include "data_examiner.h"
+
 // constants for threshold values (do not touch unless necessary).
 constexpr float kPhLevelMin = 6.5f;
 constexpr float kPhLevelMax = 9.0f;
