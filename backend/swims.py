@@ -2,10 +2,11 @@ import os
 from venv import logger
 import serial
 import proto.sensor_data_pb2 as sensor_data_pb2
-from tkinter import Tk, StringVar, Label, Frame
+from tkinter import Tk, StringVar, Label, Frame, messagebox
 from tkinter.font import Font
 from log.logger import SensorDataLogger
 import time
+from monitor.monitor import SensorDataMonitor
 
 def clear_screen():
     os.system('clear')
@@ -20,6 +21,7 @@ class SensorData:
         self.salinity = salinity
 
 data = SensorData(0, 0, 0, 0)
+monitor = SensorDataMonitor()
 
 # tkinter window
 root = Tk()
@@ -64,6 +66,12 @@ def update_data():
         data.pH = round(sensor_data.pH, 2)
         data.dOxygen = round(sensor_data.dOxygen, 2)
         data.salinity = round(sensor_data.salinity, 2)
+        
+        # monitor data
+        statusPh: bool = monitor.check_parameter_level("ph", data.pH)
+        statusSalinity: bool = monitor.check_parameter_level("salinity", data.salinity)
+        statusDoxygen: bool = monitor.check_parameter_level("dissolved_oxygen", data.dOxygen)
+        statusTemperature: bool = monitor.check_parameter_level("temperature", data.temperature)
         
         current_time = time.time()
         if current_time - last_logged_time >= 1:  # Only log if a second has passed

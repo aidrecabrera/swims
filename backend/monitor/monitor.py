@@ -9,7 +9,7 @@ THRESHOLDS = {
 class SensorDataMonitor: 
     """
     Example:
-        monitor = monitor()
+        monitor = SensorDataMonitor()
         print(monitor.check_parameter_level('ph', 7.0)) Output: True
     """
     def update_threshold_values(self, **kwargs):
