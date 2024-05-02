@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message SensorData {
+    float temperature = 1;
+    float pH = 2;
+    float dOxygen = 3;
+    float salinity = 4;
+}
