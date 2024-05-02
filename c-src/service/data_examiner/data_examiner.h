@@ -1,5 +1,5 @@
-#ifndef AQUARIUM_MONITORING_SYSTEM_H
-#define AQUARIUM_MONITORING_SYSTEM_H
+#ifndef DATA_EXAMINER_H
+#define DATA_EXAMINER_H
 
 extern constexpr float kPhLevelMin;
 extern constexpr float kPhLevelMax;
