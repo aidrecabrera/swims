@@ -94,6 +94,7 @@ float readSalinity(float tempVal)
     timepoint = millis();
     voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
     ecValue = ec.readEC(voltage, tempVal);    // convert voltage to EC with temperature compensation
+    return ecValue;
   }
   ec.calibration(voltage, tempVal);
   return ecValue;
@@ -104,9 +105,9 @@ float estimateDissolvedOxygen(float phLevel, float temperature, float salinity)
 {
   float T = temperature + 273.15;  // celsius to kelvin
   float S = salinity;               // salinity in parts per thousand (ppt)
-  float A = 457.88;                // Constant A
-  float B = 2.00907;               // Constant B
-  float C = 1737.62;               // Constant C
+  float A = 457.88;                // constant a
+  float B = 2.00907;               // constant b
+  float C = 1737.62;               // constant c
   float DO = (A * exp(B - C / T)) * (1.0 - 0.000025 * S); 
 
   // pH correction factor
