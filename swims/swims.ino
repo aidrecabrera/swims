@@ -7,7 +7,6 @@
 #include <DallasTemperature.h>
 
 #include "DFRobot_EC.h"
-#include "sim800lv2.h"
 #include "pb.h"
 #include "pb_decode.h"
 #include "pb_encode.h"
@@ -33,10 +32,7 @@ String userNumber = "+639604377530";
 DFRobot_EC ec;
 PH4502C_Sensor ph4502c(PH4502C_PH_PIN, PH4502C_TEMPERATURE_PIN, PH4502C_CALIBRATION,
                        PH4502C_READING_INTERVAL, PH4502C_READING_COUNT, ADC_RESOLUTION);
-SIM800L sim(10, 11);
-// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(DS18B20_PIN);
-// Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature sensors(&oneWire);
 
 // sms module
@@ -64,11 +60,6 @@ void sms(int action, String alertMessage = "")
       break;
     }
   }
-//  sim.update();
-//  if (sim.available() > 0)
-//  {
-//    Serial.write(sim.read());
-//  }
 }
 
 // serial communication
@@ -141,11 +132,12 @@ void setup()
 
 void loop()
 {
+  // sensor readings
   sensors.requestTemperatures();
   SensorData sensorData = SensorData_init_zero;
   sensorData.temperature = sensors.getTempCByIndex(0);                                                             // Temperature Measurement
   sensorData.pH = ph4502c.read_ph_level();                                                                  // pH Measurement
-  sensorData.salinity = readSalinity(sensors.getTempCByIndex(0));                                                                     // Salinity Measurement
+  sensorData.salinity = readSalinity(sensorData.temperature);                                                                     // Salinity Measurement
   sensorData.dOxygen = estimateDissolvedOxygen(sensorData.pH, sensorData.temperature, sensorData.salinity); // Dissolved Oxygen Measurement
 
   // protobuf encoding
