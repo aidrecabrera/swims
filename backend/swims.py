@@ -1,7 +1,7 @@
 import os
 from venv import logger
 import serial
-import main.backend.proto.sensor_data_pb2 as sensor_data_pb2
+import proto.sensor_data_pb2 as sensor_data_pb2
 from tkinter import Tk, StringVar, Label, Frame
 from tkinter.font import Font
 from log.logger import SensorDataLogger
