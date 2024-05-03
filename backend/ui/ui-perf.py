@@ -1,4 +1,5 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
 class GUIApplication:
     def __init__(self):
@@ -19,7 +20,7 @@ class GUIApplication:
         self.root.grid_rowconfigure(3, weight=0)  # Adjusted weight for the row containing signal, internet, and sensors
         self.root.config(width=800, height=480)  # Adjusted size for 5-inch display
 
-        def create_card(root, card_style, grid_position, texts, colspan=1, rowspan=1):
+        def create_card(root, card_style, grid_position, texts, icon_path=None, colspan=1, rowspan=1):
             card = tk.Canvas(root, **card_style)
             if texts == ["Sensors"] or texts == ["Signal"] or texts == ["Internet"]:
                 card = tk.Canvas(root, **card_style)
@@ -34,19 +35,26 @@ class GUIApplication:
                     card.create_text(10, y_position, anchor="nw", text=text, font=("Inter", font_size, font_weight), justify="left")
                 
             if texts[0] == "Settings":
-                button = tk.Button(card, text="Settings", font=("Inter", 10, "normal"), command=lambda: print("Settings clicked"), bg="#f3f4f6", border=0, activebackground="#f3f4f6")
-                button.place(relx=0.5, rely=0.5, anchor="center")
+                icon = Image.open(icon_path)
+                icon_photo = ImageTk.PhotoImage(icon)
+                card.create_image(card_style.get("width") // 2, card_style.get("height") // 2, image=icon_photo)
+                card.image = icon_photo
             elif texts[0] == "Sensor Data":
                 card.create_text(10, 10, anchor="nw", text=texts[0], font=("Inter", 14, "normal"), justify="left")
             elif texts[0] == "Sensors" or texts[0] == "Signal" or texts[0] == "Internet":
-                card.create_text(10, 10, anchor="nw", text=texts[0], font=("Inter", 18, "normal"), justify="left")
-                card.create_text(10, 40, anchor="nw", text=texts[1], font=("Inter", 14, "normal"), justify="left")
+                card.create_text(card_style.get("width") // 2, card_style.get("height") // 2, text=texts[0] + ": " + texts[1], font=("Inter", 14, "normal"), justify="center")
             else:
                 normal_range_text = texts[-1]
                 normal_range_font_size = 10  # Adjusted font size
                 padding = 10  # Adjusted padding
-                normal_range_y_position = card_style.get("height") - normal_range_font_size - padding
-                card.create_text(10, normal_range_y_position, anchor="sw", text=normal_range_text, font=("Inter", normal_range_font_size, "normal"), justify="left")
+                normal_range_y_position = card_style.get("height") - normal_range_font_size + 8
+                card.create_text(35, normal_range_y_position, anchor="sw", text=normal_range_text, font=("Inter", normal_range_font_size, "normal"), justify="left")
+                
+                if icon_path:
+                    icon = Image.open(icon_path)
+                    icon_photo = ImageTk.PhotoImage(icon)
+                    card.create_image(10, normal_range_y_position, anchor="sw", image=icon_photo)
+                    card.image = icon_photo
             
             return card
     
@@ -82,14 +90,14 @@ class GUIApplication:
         metadata_internet = ["Internet", "Connected"]
         metadata_sensors = ["Sensors", "Running"]
 
-        self.pHCard = create_card(self.root, card_style, (0, 0), metadata_ph)
-        self.salinityCard = create_card(self.root, card_style, (0, 1), metadata_salinity)
-        self.temperatureCard = create_card(self.root, card_style, (0, 2), metadata_temperature)
+        self.pHCard = create_card(self.root, card_style, (0, 0), metadata_ph, icon_path="drop.png")
+        self.salinityCard = create_card(self.root, card_style, (0, 1), metadata_salinity, icon_path="ion.png")
+        self.temperatureCard = create_card(self.root, card_style, (0, 2), metadata_temperature, icon_path="thermo.png")
         
-        self.doxygenCard = create_card(self.root, card_style, (1, 0), metadata_doxygen, colspan=1, rowspan=1)
+        self.doxygenCard = create_card(self.root, card_style, (1, 0), metadata_doxygen, icon_path="trinity.png", colspan=1, rowspan=1)
         self.sensorData = create_card(self.root, card_style, (1, 1), metadata_sensor_data, colspan=2, rowspan=2)
         
-        self.settingsCard = create_card(self.root, card_style, (2, 0), metadata_settings, colspan=1, rowspan=1)
+        self.settingsCard = create_card(self.root, card_style, (2, 0), metadata_settings, icon_path="hamburg.png", colspan=1, rowspan=1)
         
         self.signal = create_card(self.root, widget_style, (3, 0), metadata_signal)
         self.internet = create_card(self.root, widget_style, (3, 1), metadata_internet)

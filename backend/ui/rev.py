@@ -28,23 +28,22 @@ class GUIApplication:
             
             if texts[0] not in ["Sensors", "Signal", "Internet"]:
                 for i, text in enumerate(texts[:-1]):  # Exclude the last text (normal range)
-                    font_size = 14 if i == 0 else 24  # Adjusted font sizes
+                    font_size = 18 if i == 0 else 28  # Increased font sizes
                     font_weight = "bold" if i == 1 else "normal"
-                    y_position = 10 if i == 0 else 35  # Adjusted y-positions
+                    y_position = 15 if i == 0 else 45  # Adjusted y-positions
                     card.create_text(10, y_position, anchor="nw", text=text, font=("Inter", font_size, font_weight), justify="left")
                 
             if texts[0] == "Settings":
-                button = tk.Button(card, text="Settings", font=("Inter", 10, "normal"), command=lambda: print("Settings clicked"), bg="#f3f4f6", border=0, activebackground="#f3f4f6")
+                button = tk.Button(card, text="Settings", font=("Inter", 14, "normal"), command=lambda: print("Settings clicked"), bg="#f3f4f6", border=0, activebackground="#f3f4f6")
                 button.place(relx=0.5, rely=0.5, anchor="center")
             elif texts[0] == "Sensor Data":
-                card.create_text(10, 10, anchor="nw", text=texts[0], font=("Inter", 14, "normal"), justify="left")
+                card.create_text(10, 15, anchor="nw", text=texts[0], font=("Inter", 18, "normal"), justify="left")
             elif texts[0] == "Sensors" or texts[0] == "Signal" or texts[0] == "Internet":
-                card.create_text(10, 10, anchor="nw", text=texts[0], font=("Inter", 18, "normal"), justify="left")
-                card.create_text(10, 40, anchor="nw", text=texts[1], font=("Inter", 14, "normal"), justify="left")
+                card.create_text(card_style.get("width") // 2, card_style.get("height") // 2, text=texts[0] + ": " + texts[1], font=("Inter", 18, "normal"), justify="center")
             else:
                 normal_range_text = texts[-1]
-                normal_range_font_size = 10  # Adjusted font size
-                padding = 10  # Adjusted padding
+                normal_range_font_size = 14  # Increased font size
+                padding = 10
                 normal_range_y_position = card_style.get("height") - normal_range_font_size - padding
                 card.create_text(10, normal_range_y_position, anchor="sw", text=normal_range_text, font=("Inter", normal_range_font_size, "normal"), justify="left")
             
@@ -56,7 +55,7 @@ class GUIApplication:
             "borderwidth": 0.5,
             "highlightbackground": "black",
             "width": 250,
-            "height": 120  # Adjusted height
+            "height": 120
         }
         
         widget_style = {
@@ -65,7 +64,7 @@ class GUIApplication:
             "borderwidth": 0.5,
             "highlightbackground": "black",
             "width": 250,
-            "height": 40  # Adjusted height for signal, internet, and sensors
+            "height": 60  # Increased height for signal, internet, and sensors
         }
         
         for i in range(3):
