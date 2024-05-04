@@ -6,19 +6,24 @@ from tkinter import Tk, Canvas, Button, PhotoImage
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(
-    r"C:\.dev\projects\python\ui_swims\final\assets\frame0"
-)
+from pathlib import Path
 
+CURRENT_PATH = Path(__file__).parent
+ASSETS_PATH = CURRENT_PATH / 'assets' / 'frame0'
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
-
 window = Tk()
 window.geometry("800x480")
+window.attributes('-fullscreen')
 window.configure(bg="#FFFFFF")
+
+def toggle_fullscreen(event=None):
+    window.attributes('-fullscreen', not window.attributes('-fullscreen'))
+
+window.bind('<F11>', toggle_fullscreen)
+window.bind('<Escape>', toggle_fullscreen)
 
 canvas = Canvas(
     window,
