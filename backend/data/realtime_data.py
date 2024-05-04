@@ -1,6 +1,8 @@
 import os
+import select
 import sys
 import serial
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from proto import sensor_data_pb2
@@ -59,11 +61,21 @@ class SensorData:
             self.dOxygen = round(sensor_data.dOxygen, 2)
             self.salinity = round(sensor_data.salinity, 2)
 
-
-
             return {
                 'pH': self.pH,
                 'salinity': self.salinity,
                 'temperature': self.temperature,
                 'dOxygen': self.dOxygen
             }
+
+    def check_sensors(self, serial_port='/dev/ttyUSB0'):
+        """
+        Checks if the sensors are connected by verifying the existence of the serial port device.
+
+        Args:
+            serial_port (str): The serial port to check for. Default is '/dev/ttyUSB0'.
+
+        Returns:
+            bool: True if the serial port device exists, False otherwise.
+        """
+        return os.path.exists(serial_port)

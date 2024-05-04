@@ -18,8 +18,8 @@ def update_sensor_data(gui, sensor_data, logger):
             pH=data.pH,
             dOxygen=data.dOxygen,
             salinity=data.salinity,
-            sim_signal=random.choice(["Strong", "Weak"]),
-            sensors=random.choice(["Running", "Stopped"]),
+            sim_signal=random.choice(["Strong", "Strong"]),
+            sensors="Running" if sensor_data.check_sensors() else "Stopped",
             internet=random.choice(["Connected", "Disconnected"])
         )
 
@@ -40,15 +40,15 @@ def main():
 
     sensor_data = SensorData()
 
-    # Initialize with latest sensor data
+    # initialize with latest sensor data
     latest_data = sensor_data.get_latest_sensor_data()
     gui = GUI(window, latest_data['temperature'], latest_data['pH'], latest_data['dOxygen'], latest_data['salinity'])
 
-    # Create a logger instance
+    # create a logger instance
     db_url = "sqlite:///swims_log.db"
     logger = SensorDataLogger(db_url)
 
-    # Start a separate thread to update sensor data and log it
+    # start a separate thread to update sensor data and log it
     threading.Thread(target=update_sensor_data, args=(gui, sensor_data, logger), daemon=True).start()
 
     window.resizable(False, False)
