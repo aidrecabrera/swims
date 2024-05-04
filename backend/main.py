@@ -41,7 +41,7 @@ def main():
     window = Tk()
     window.geometry("800x480")
     window.configure(bg="#FFFFFF")
-
+    window.attributes('-fullscreen', True)
     # check if the window is not in full-screen mode, and set it to full-screen mode
     if not window.attributes('-fullscreen'):
         window.attributes('-fullscreen', True)

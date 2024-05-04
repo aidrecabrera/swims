@@ -52,8 +52,7 @@ class SensorGraph:
         if dOxygen >= 0:
             self.data["dOxygen"].append(dOxygen)
 
-        if salinity >= 0:
-            self.data["salinity"].append(salinity)
+        self.data["salinity"].append(salinity)
 
         if len(self.data["temperature"]) > 0:
             x = np.arange(len(self.data["temperature"]))
