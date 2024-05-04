@@ -26,7 +26,7 @@ def update_sensor_data(gui, sensor_data, logger):
             pH=data.pH,
             dOxygen=data.dOxygen,
             salinity=data.salinity,
-            sim_signal=random.choice(["Strong", "Strong"]),
+            sim_signal="Connected",
             sensors="Running" if sensor_data.check_sensors() else "Stopped",
             internet="Connected" if check_internet_connection() else "Disconnected"
         )
