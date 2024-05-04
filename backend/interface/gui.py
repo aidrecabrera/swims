@@ -8,11 +8,20 @@ class GUI:
         self.window = window
         self.canvas = self.create_canvas()
         self.create_rectangles()
-        self.create_metadata_sensor()
         self.create_image_icons()
         self.create_sensor_labels()
+        self.sensor_data = {
+            "pH": {"value": "12.0 (Normal)", "normal_range": "6.5 - 8.5"},
+            "Salinity": {"value": "10.5 ppt", "normal_range": "6.5 - 8.5"},
+            "Temperature": {"value": "22°C", "normal_range": "6.5 - 8.5"},
+            "Dissolved Oxygen": {"value": "8.2 mg/L", "normal_range": "6.5 - 8.5"},
+            "SIM Signal": "Strong",
+            "Sensors": "Running",
+            "Internet Access": "Connected"
+        }
         self.create_sensor_status()
         self.create_button()
+        self.create_metadata_sensor()
 
     def create_canvas(self):
         canvas = Canvas(
@@ -48,7 +57,7 @@ class GUI:
         metadata_sensor = [
             {
                 "image": "image_4.png",
-                "text": ("Dissolved Oxygen", "8.2 mg/L", "Normal range: 6.5 - 8.5"),
+                "text": ("Dissolved Oxygen", self.sensor_data["Dissolved Oxygen"]["value"], f"Normal range: {self.sensor_data['Dissolved Oxygen']['normal_range']}"),
                 "coords": (
                     556.0,
                     167.98077392578125,
@@ -62,7 +71,7 @@ class GUI:
             },
             {
                 "image": "image_5.png",
-                "text": ("Temperature", "22°C", "Normal range: 6.5 - 8.5"),
+                "text": ("Temperature", self.sensor_data["Temperature"]["value"], f"Normal range: {self.sensor_data['Temperature']['normal_range']}"),
                 "coords": (
                     555.0,
                     48.0,
@@ -76,24 +85,23 @@ class GUI:
             },
             {
                 "image": "image_6.png",
-                "text": ("Salinity", "10.5 ppt", "Normal range: 6.5 - 8.5"),
+                "text": ("Salinity", self.sensor_data["Salinity"]["value"], f"Normal range: {self.sensor_data['Salinity']['normal_range']}"),
                 "coords": (
-                    301.0,
-                    47.0006103515625,
-                    315.0,
-                    38.0,
-                    293.0,
-                    62.0,
-                    293.0,  # x1
-                    102.0,  # y1
-                ),
-            },
-            {
-                "image": "image_7.png",
-                "text": ("pH", "12.0 (Normal)", "Normal range: 6.5 - 8.5"),
-                "coords": (43.0, 47.5, 55.75, 38, 37.0, 62.0, 37.0, 102.0),
-            },
-        ]
+                    301.0,47.0006103515625,
+                315.0,
+                38.0,
+                293.0,
+                62.0,
+                293.0,  # x1
+                102.0,  # y1
+            ),
+        },
+        {
+            "image": "image_7.png",
+            "text": ("pH", self.sensor_data["pH"]["value"], f"Normal range: {self.sensor_data['pH']['normal_range']}"),
+            "coords": (43.0, 47.5, 55.75, 38, 37.0, 62.0, 37.0, 102.0),
+        },
+    ]
         for element in metadata_sensor:
             text = element["text"]
             coords = element["coords"]
@@ -157,9 +165,9 @@ class GUI:
 
     def create_sensor_status(self):
         sensor_status = [
-            {"text": "Strong", "coords": (626.0, 427.0)},
-            {"text": "Running", "coords": (127.0, 424.0)},
-            {"text": "Connected", "coords": (346.0, 427.0)},
+            {"text": self.sensor_data["SIM Signal"], "coords": (626.0, 427.0)},
+            {"text": self.sensor_data["Sensors"], "coords": (127.0, 424.0)},
+            {"text": self.sensor_data["Internet Access"], "coords": (346.0, 427.0)},
         ]
         for elem in sensor_status:
             self.canvas.create_text(
@@ -169,8 +177,7 @@ class GUI:
                 text=elem["text"],
                 fill="#000000",
                 font=("Inter", 15 * -1),
-            )
-
+                )
     def create_button(self):
         button_image_path = relative_to_assets("button_1.png")
         button_img = Image.open(button_image_path)
@@ -188,3 +195,13 @@ class GUI:
         )
         self.button_1.image = button_img  # reference to avoid garbage collection
         self.button_1.place(x=532, y=264)
+
+    def update_sensor_data(self, data):
+        self.sensor_data.update(data)
+        self.canvas.delete("all")
+        self.create_rectangles()
+        self.create_metadata_sensor()
+        self.create_image_icons()
+        self.create_sensor_labels()
+        self.create_sensor_status()
+        self.create_button()
