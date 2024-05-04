@@ -40,8 +40,11 @@ def update_sensor_data(gui, sensor_data, logger):
 def main():
     window = Tk()
     window.geometry("800x480")
-    window.attributes('-fullscreen', True)
     window.configure(bg="#FFFFFF")
+
+    # check if the window is not in full-screen mode, and set it to full-screen mode
+    if not window.attributes('-fullscreen'):
+        window.attributes('-fullscreen', True)
 
     def toggle_fullscreen(event=None):
         window.attributes('-fullscreen', not window.attributes('-fullscreen'))

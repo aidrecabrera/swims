@@ -88,7 +88,7 @@ class GUI:
         self.create_image_icons()
         self.create_sensor_labels()
         
-        self.sensor_graph = SensorGraph(window, duration=1800)
+        self.sensor_graph = SensorGraph(window, duration=5)
         self.update_graph(temperature, pH, dOxygen, salinity)
         
         self.temperature = temperature
