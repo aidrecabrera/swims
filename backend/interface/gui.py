@@ -45,39 +45,53 @@ class SensorGraph:
     def update_plot(self, time, temperature, pH, dOxygen, salinity):
         if temperature >= 0:
             self.data["temperature"].append(temperature)
-        else:
-            self.data["temperature"].append(self.data["temperature"][-1] if self.data["temperature"] else 0)
 
         if pH >= 0:
             self.data["pH"].append(pH)
-        else:
-            self.data["pH"].append(self.data["pH"][-1] if self.data["pH"] else 7)
 
         if dOxygen >= 0:
             self.data["dOxygen"].append(dOxygen)
-        else:
-            self.data["dOxygen"].append(self.data["dOxygen"][-1] if self.data["dOxygen"] else 0)
 
         if salinity >= 0:
             self.data["salinity"].append(salinity)
-        else:
-            self.data["salinity"].append(self.data["salinity"][-1] if self.data["salinity"] else 0)
 
-        x = np.arange(len(self.data["temperature"]))
+        if len(self.data["temperature"]) > 0:
+            x = np.arange(len(self.data["temperature"]))
 
-        self.lines["temperature"].set_data(x, self.data["temperature"])
-        self.lines["pH"].set_data(x, self.data["pH"])
-        self.lines["dOxygen"].set_data(x, self.data["dOxygen"])
-        self.lines["salinity"].set_data(x, self.data["salinity"])
+            self.lines["temperature"].set_data(x, self.data["temperature"])
+            self.ax.relim()
+            self.ax.autoscale_view(True, True, True)
 
-        self.ax.relim()
-        self.ax.autoscale_view(True, True, True)
+        if len(self.data["pH"]) > 0:
+            x = np.arange(len(self.data["pH"]))
+
+            self.lines["pH"].set_data(x, self.data["pH"])
+            self.ax.relim()
+            self.ax.autoscale_view(True, True, True)
+
+        if len(self.data["dOxygen"]) > 0:
+            x = np.arange(len(self.data["dOxygen"]))
+
+            self.lines["dOxygen"].set_data(x, self.data["dOxygen"])
+            self.ax.relim()
+            self.ax.autoscale_view(True, True, True)
+
+        if len(self.data["salinity"]) > 0:
+            x = np.arange(len(self.data["salinity"]))
+
+            self.lines["salinity"].set_data(x, self.data["salinity"])
+            self.ax.relim()
+            self.ax.autoscale_view(True, True, True)
+
         self.canvas.draw()
 
         if len(self.data["temperature"]) > self.duration:
             self.data["temperature"] = self.data["temperature"][-self.duration:]
+        if len(self.data["pH"]) > self.duration:
             self.data["pH"] = self.data["pH"][-self.duration:]
+        if len(self.data["dOxygen"]) > self.duration:
             self.data["dOxygen"] = self.data["dOxygen"][-self.duration:]
+        if len(self.data["salinity"]) > self.duration:
             self.data["salinity"] = self.data["salinity"][-self.duration:]
 
 class GUI:
@@ -88,7 +102,7 @@ class GUI:
         self.create_image_icons()
         self.create_sensor_labels()
         
-        self.sensor_graph = SensorGraph(window, duration=5)
+        self.sensor_graph = SensorGraph(window, duration=30)
         self.update_graph(temperature, pH, dOxygen, salinity)
         
         self.temperature = temperature
