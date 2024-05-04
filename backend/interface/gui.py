@@ -1,7 +1,84 @@
+import time
 from tkinter import Tk, Canvas, Button, PhotoImage
 from pathlib import Path
 from .utils import relative_to_assets 
 from PIL import Image, ImageTk
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import numpy as np
+
+class SensorGraph:
+    def __init__(self, master, width=5, height=4, dpi=100, duration=60):
+        self.master = master
+        self.width = width
+        self.height = height
+        self.dpi = dpi
+        self.duration = duration  # Duration in seconds
+
+        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor='none', edgecolor='none')
+        self.ax = self.fig.add_subplot(111, facecolor='none')
+        self.ax.set_xlabel("Time")
+        self.ax.set_ylabel("Value")
+        self.ax.set_title("Sensor Data")
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.master)
+        self.canvas.get_tk_widget().place(x=25, y=150, width=497, height=215)
+
+        self.data = {
+            "temperature": [],
+            "pH": [],
+            "dOxygen": [],
+            "salinity": []
+        }
+        self.lines = {}
+        self.init_plot()
+
+    def init_plot(self):
+        self.lines["temperature"], = self.ax.plot([], [], label="Temperature")
+        self.lines["pH"], = self.ax.plot([], [], label="pH")
+        self.lines["dOxygen"], = self.ax.plot([], [], label="Dissolved Oxygen")
+        self.lines["salinity"], = self.ax.plot([], [], label="Salinity")
+        self.ax.legend(facecolor='none', edgecolor='none')
+
+    def update_plot(self, time, temperature, pH, dOxygen, salinity):
+        if temperature >= 0:
+            self.data["temperature"].append(temperature)
+        else:
+            self.data["temperature"].append(self.data["temperature"][-1] if self.data["temperature"] else 0)
+
+        if pH >= 0:
+            self.data["pH"].append(pH)
+        else:
+            self.data["pH"].append(self.data["pH"][-1] if self.data["pH"] else 7)
+
+        if dOxygen >= 0:
+            self.data["dOxygen"].append(dOxygen)
+        else:
+            self.data["dOxygen"].append(self.data["dOxygen"][-1] if self.data["dOxygen"] else 0)
+
+        if salinity >= 0:
+            self.data["salinity"].append(salinity)
+        else:
+            self.data["salinity"].append(self.data["salinity"][-1] if self.data["salinity"] else 0)
+
+        x = np.arange(len(self.data["temperature"]))
+
+        self.lines["temperature"].set_data(x, self.data["temperature"])
+        self.lines["pH"].set_data(x, self.data["pH"])
+        self.lines["dOxygen"].set_data(x, self.data["dOxygen"])
+        self.lines["salinity"].set_data(x, self.data["salinity"])
+
+        self.ax.relim()
+        self.ax.autoscale_view(True, True, True)
+        self.canvas.draw()
+
+        if len(self.data["temperature"]) > self.duration:
+            self.data["temperature"] = self.data["temperature"][-self.duration:]
+            self.data["pH"] = self.data["pH"][-self.duration:]
+            self.data["dOxygen"] = self.data["dOxygen"][-self.duration:]
+            self.data["salinity"] = self.data["salinity"][-self.duration:]
 
 class GUI:
     def __init__(self, window, temperature, pH, dOxygen, salinity):
@@ -10,6 +87,9 @@ class GUI:
         self.create_rectangles()
         self.create_image_icons()
         self.create_sensor_labels()
+        
+        self.sensor_graph = SensorGraph(window, duration=1800)
+        self.update_graph(temperature, pH, dOxygen, salinity)
         
         self.temperature = temperature
         self.pH = pH
@@ -29,6 +109,9 @@ class GUI:
         self.create_metadata_sensor()
         self.create_sensor_status()
         self.create_button()
+
+    def update_graph(self, temperature, pH, dOxygen, salinity):
+        self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)
 
     def create_canvas(self):
         canvas = Canvas(
@@ -217,19 +300,19 @@ class GUI:
         self.button_1.place(x=532, y=264)
 
     def update_sensor_data(self, temperature=None, pH=None, dOxygen=None, salinity=None, sim_signal=None, sensors=None, internet=None):
-        if temperature is not None:
+        if temperature is not None and temperature >= 0:
             self.temperature = temperature
             self.sensor_data["Temperature"]["value"] = temperature
             self.canvas.itemconfig(self.metadata_sensor_elements["Temperature"]["value"], text=temperature)
-        if pH is not None:
+        if pH is not None and pH >= 0:
             self.pH = pH
             self.sensor_data["pH"]["value"] = pH
             self.canvas.itemconfig(self.metadata_sensor_elements["pH"]["value"], text=pH)
-        if dOxygen is not None:
+        if dOxygen is not None and dOxygen >= 0:
             self.dOxygen = dOxygen
             self.sensor_data["Dissolved Oxygen"]["value"] = f"{dOxygen}/L"
             self.canvas.itemconfig(self.metadata_sensor_elements["Dissolved Oxygen"]["value"], text=f"{dOxygen}/L")
-        if salinity is not None:
+        if salinity is not None and salinity >= 0:
             self.salinity = salinity
             self.sensor_data["Salinity"]["value"] = salinity
             self.canvas.itemconfig(self.metadata_sensor_elements["Salinity"]["value"], text=salinity)

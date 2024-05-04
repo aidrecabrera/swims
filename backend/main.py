@@ -5,6 +5,14 @@ from tkinter import Tk
 from interface.gui import GUI
 from data.realtime_data import SensorData
 from log.logger import SensorDataLogger
+import subprocess
+
+def check_internet_connection():
+   try:
+      subprocess.check_output(["ping", "-c", "1", "8.8.8.8"])
+      return True
+   except subprocess.CalledProcessError:
+      return False
 
 def log_sensor_data(data, logger):
     query = logger.log(data.temperature, data.pH, data.dOxygen, data.salinity)
@@ -20,8 +28,11 @@ def update_sensor_data(gui, sensor_data, logger):
             salinity=data.salinity,
             sim_signal=random.choice(["Strong", "Strong"]),
             sensors="Running" if sensor_data.check_sensors() else "Stopped",
-            internet=random.choice(["Connected", "Disconnected"])
+            internet="Connected" if check_internet_connection() else "Disconnected"
         )
+        
+        # update graph
+        gui.update_graph(data.temperature, data.pH, data.dOxygen, data.salinity)
 
         # call the log_sensor_data function
         log_sensor_data(data, logger)
