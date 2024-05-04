@@ -1,19 +1,11 @@
 from tkinter import Tk, Canvas, Button, PhotoImage
+from pathlib import Path
+from .utils import relative_to_assets 
 from PIL import Image, ImageTk
-from .utils import relative_to_assets
 
 class GUI:
     def __init__(self, window):
         self.window = window
-        self.dynamic_data = {
-            "pH": "12.0 (Normal)",
-            "Salinity": "10.5 ppt",
-            "Temperature": "22°C",
-            "Dissolved Oxygen": "8.2 mg/L",
-            "SIM Signal": "Strong",
-            "Sensors": "Running",
-            "Internet Access": "Connected"
-        }
         self.canvas = self.create_canvas()
         self.create_rectangles()
         self.create_metadata_sensor()
@@ -50,13 +42,13 @@ class GUI:
             (21.0, 144.0, 522.0, 374.0), 
         ]
         for rect in rectangles:
-            self.canvas.create_rectangle(*rect, fill="#FFFFFF", outline="#e2e8f0", width=1)
+            self.canvas.create_rectangle(*rect, fill="#FFFFFF", outline="#e2e8f0")
 
     def create_metadata_sensor(self):
         metadata_sensor = [
             {
                 "image": "image_4.png",
-                "text": ("Dissolved Oxygen", self.dynamic_data["Dissolved Oxygen"], "Normal range: 6.5 - 8.5"),
+                "text": ("Dissolved Oxygen", "8.2 mg/L", "Normal range: 6.5 - 8.5"),
                 "coords": (
                     556.0,
                     167.98077392578125,
@@ -70,7 +62,7 @@ class GUI:
             },
             {
                 "image": "image_5.png",
-                "text": ("Temperature", self.dynamic_data["Temperature"], "Normal range: 6.5 - 8.5"),
+                "text": ("Temperature", "22°C", "Normal range: 6.5 - 8.5"),
                 "coords": (
                     555.0,
                     48.0,
@@ -84,7 +76,7 @@ class GUI:
             },
             {
                 "image": "image_6.png",
-                "text": ("Salinity", self.dynamic_data["Salinity"], "Normal range: 6.5 - 8.5"),
+                "text": ("Salinity", "10.5 ppt", "Normal range: 6.5 - 8.5"),
                 "coords": (
                     301.0,
                     47.0006103515625,
@@ -98,7 +90,7 @@ class GUI:
             },
             {
                 "image": "image_7.png",
-                "text": ("pH", self.dynamic_data["pH"], "Normal range: 6.5 - 8.5"),
+                "text": ("pH", "12.0 (Normal)", "Normal range: 6.5 - 8.5"),
                 "coords": (43.0, 47.5, 55.75, 38, 37.0, 62.0, 37.0, 102.0),
             },
         ]
@@ -112,7 +104,6 @@ class GUI:
                 text=text[0],
                 fill="#000000",
                 font=("Inter", 16 * -1),
-                tags=["dynamic_text"]
             )
             self.canvas.create_text(
                 coords[4],
@@ -121,7 +112,6 @@ class GUI:
                 text=text[1],
                 fill="#000000",
                 font=("Inter Bold", 27 * -1),
-                tags=["dynamic_text"]
             )
             if len(text) > 2:  
                 self.canvas.create_text(
@@ -131,7 +121,6 @@ class GUI:
                     text=text[2],
                     fill="#000000",
                     font=("Inter", 13 * -1),
-                    tags=["dynamic_text"]
                 )
 
     def create_image_icons(self):
@@ -164,7 +153,6 @@ class GUI:
                 text=elem["text"],
                 fill="#000000",
                 font=("Inter", 20 * -1),
-                tags=["dynamic_text"]
             )
 
     def create_sensor_status(self):
@@ -181,7 +169,6 @@ class GUI:
                 text=elem["text"],
                 fill="#000000",
                 font=("Inter", 15 * -1),
-                tags=["dynamic_text"]
             )
 
     def create_button(self):
@@ -194,34 +181,10 @@ class GUI:
             image=button_img,
             borderwidth=0,
             highlightthickness=0,
-            highlightbackground="#e2e8f0",
-            highlightcolor="#e2e8f0",
-            bd=0,
             command=lambda: print("button_1 clicked"),
             relief="flat",
             padx=0,
-            pady=0,
+            pady=0
         )
         self.button_1.image = button_img  # reference to avoid garbage collection
         self.button_1.place(x=532, y=264)
-
-    def update_dynamic_data(self, data):
-        self.dynamic_data.update(data)
-        for item in self.canvas.find_withtag("dynamic_text"):
-            text = self.canvas.itemcget(item, "text")
-            if text in self.dynamic_data:
-                self.canvas.itemconfigure(item, text=self.dynamic_data[text])
-
-    def render_application(self):
-        self.window.geometry("800x480")
-        self.window.attributes('-fullscreen')
-        self.window.configure(bg="#FFFFFF")
-
-        def toggle_fullscreen(event=None):
-            self.window.attributes('-fullscreen', not self.window.attributes('-fullscreen'))
-
-        self.window.bind('<F11>', toggle_fullscreen)
-        self.window.bind('<Escape>', toggle_fullscreen)
-
-        self.window.resizable(False, False)
-        self.window.mainloop()
