@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+asfrom monitor.monitor import THRESHOLDS
 import numpy as np
 
 class SensorGraph:
@@ -317,24 +318,46 @@ class GUI:
             self.temperature = temperature
             self.sensor_data["Temperature"]["value"] = temperature
             self.canvas.itemconfig(self.metadata_sensor_elements["Temperature"]["value"], text=temperature)
+            if not THRESHOLDS['temperature'][0] <= temperature <= THRESHOLDS['temperature'][1]:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Temperature"]["value"], fill="red")
+            else:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Temperature"]["value"], fill="black")
+
         if pH is not None and pH >= 0:
             self.pH = pH
             self.sensor_data["pH"]["value"] = pH
             self.canvas.itemconfig(self.metadata_sensor_elements["pH"]["value"], text=pH)
+            if not THRESHOLDS['ph'][0] <= pH <= THRESHOLDS['ph'][1]:
+                self.canvas.itemconfig(self.metadata_sensor_elements["pH"]["value"], fill="red")
+            else:
+                self.canvas.itemconfig(self.metadata_sensor_elements["pH"]["value"], fill="black")
+
         if dOxygen is not None and dOxygen >= 0:
             self.dOxygen = dOxygen
             self.sensor_data["Dissolved Oxygen"]["value"] = f"{dOxygen}/L"
             self.canvas.itemconfig(self.metadata_sensor_elements["Dissolved Oxygen"]["value"], text=f"{dOxygen}/L")
+            if not THRESHOLDS['dissolved_oxygen'][0] <= dOxygen <= THRESHOLDS['dissolved_oxygen'][1]:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Dissolved Oxygen"]["value"], fill="red")
+            else:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Dissolved Oxygen"]["value"], fill="black")
+
         if salinity is not None and salinity >= 0:
             self.salinity = salinity
             self.sensor_data["Salinity"]["value"] = salinity
             self.canvas.itemconfig(self.metadata_sensor_elements["Salinity"]["value"], text=salinity)
+            if not THRESHOLDS['salinity'][0] <= salinity <= THRESHOLDS['salinity'][1]:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Salinity"]["value"], fill="red")
+            else:
+                self.canvas.itemconfig(self.metadata_sensor_elements["Salinity"]["value"], fill="black")
+
         if sim_signal is not None:
             self.sensor_data["SIM Signal"] = sim_signal
-            self.canvas.itemconfig(self.sensor_status_elements["Strong"], text=sim_signal)
+            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["SIM Signal"]], text=sim_signal)
+
         if sensors is not None:
             self.sensor_data["Sensors"] = sensors
-            self.canvas.itemconfig(self.sensor_status_elements["Running"], text=sensors)
+            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Sensors"]], text=sensors)
+
         if internet is not None:
             self.sensor_data["Internet Access"] = internet
-            self.canvas.itemconfig(self.sensor_status_elements["Connected"], text=internet)
+            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Internet Access"]], text=internet)
