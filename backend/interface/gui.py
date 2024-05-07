@@ -1,12 +1,13 @@
 import time
-from tkinter import BOTH, E, FLAT, X, Frame, Label, Canvas, Button, PhotoImage, Toplevel
+from tkinter import Tk, Canvas, Button, PhotoImage
+from pathlib import Path
 from .utils import relative_to_assets 
 from PIL import Image, ImageTk
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from monitor.monitor import THRESHOLDS, SensorDataMonitor
+from monitor.monitor import THRESHOLDS
 import numpy as np
 
 class SensorGraph:
@@ -108,8 +109,6 @@ class GUI:
         self.pH = pH
         self.dOxygen = dOxygen
         self.salinity = salinity
-        self.sensor_monitor = SensorDataMonitor()
-        self.popup = None
         
         self.sensor_data = {
             "pH": {"value": self.pH, "normal_range": "6.5 - 8.5"},
@@ -124,64 +123,6 @@ class GUI:
         self.create_metadata_sensor()
         self.create_sensor_status()
         self.create_button()
-
-    def check_sensor_values(self, temperature, pH, dOxygen, salinity):
-        parameters = {
-            'Temperature': temperature,
-            'pH': pH,
-            'Dissolved Oxygen': dOxygen,
-            'Salinity': salinity
-        }
-        unstable_parameters = {param: value for param, value in parameters.items() if not self.sensor_monitor.check_parameter_level(param.lower().replace(' ', '_'), value)}
-        if unstable_parameters:
-            self.show_warning_popup(unstable_parameters)
-
-    def show_warning_popup(self, parameters):
-        if self.popup and self.popup.winfo_exists():  
-            self.update_popup_content(parameters)
-        else:
-            self.create_popup(parameters)
-
-    def create_popup(self, parameters):
-        self.popup = Toplevel(self.window)
-        self.popup.title("Warning")
-        self.popup.geometry("480x100")
-        self.popup.configure(bg="#F5F5F5")
-
-        content_frame = Frame(self.popup, bg="#FFFFFF", padx=20, pady=20)
-        content_frame.pack(expand=True, fill=BOTH)
-
-        message = ", ".join([f"{param}" for param in parameters.keys()]) + " is not stabilized."
-        label = Label(content_frame, text=message, font=("Arial", 12), bg="#FFFFFF", fg="#FF0000")  # Red text color
-        label.pack()
-
-        separator = Frame(content_frame, height=1, bg="#E0E0E0", bd=0)
-        separator.pack(fill=X, pady=10)
-
-        button_frame = Frame(content_frame, bg="#FFFFFF")
-        button_frame.pack(anchor=E)  # Align button to the right
-
-        def close_popup():
-            self.popup.destroy()
-
-        button = Button(button_frame, text="OK", command=close_popup, bg="#007BFF", fg="#FFFFFF", font=("Arial", 10), padx=20, pady=5, relief=FLAT)
-        button.pack()
-
-        self.popup.update_idletasks()
-        width = self.popup.winfo_width()
-        height = self.popup.winfo_height()
-        x = (self.popup.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.popup.winfo_screenheight() // 2) - (height // 2)
-        self.popup.geometry(f"{width}x{height}+{x}+{y}")
-
-    def update_popup_content(self, parameters):
-        if '!label' not in self.popup.children:
-            label = Label(self.popup)
-            label.pack()
-        else:
-            label = self.popup.children['!label']
-
-        label['text'] = '\n'.join(f'{param}: {value}' for param, value in parameters.items())
 
     def update_graph(self, temperature, pH, dOxygen, salinity):
         self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)
@@ -373,7 +314,6 @@ class GUI:
         self.button_1.place(x=532, y=264)
 
     def update_sensor_data(self, temperature=None, pH=None, dOxygen=None, salinity=None, sim_signal=None, sensors=None, internet=None):
-        self.check_sensor_values(temperature, pH, dOxygen, salinity)
         if temperature is not None and temperature >= 0:
             self.temperature = temperature
             self.sensor_data["Temperature"]["value"] = temperature
@@ -421,4 +361,3 @@ class GUI:
         if internet is not None:
             self.sensor_data["Internet Access"] = internet
             self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Internet Access"]], text=internet)
-        

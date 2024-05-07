@@ -1,9 +1,22 @@
+import math
+import os
 import threading
+import time
 from tkinter import Tk
+
+from dotenv import load_dotenv
+from supabase import Client, create_client
 from interface.gui import GUI
 from data.realtime_data import SensorData
 from log.logger import SensorDataLogger
 import subprocess
+
+load_dotenv()
+
+url: str = os.environ.get("SUPABASE_URL")
+key: str = os.environ.get("SUPABASE_KEY")
+
+supabase: Client = create_client(url, key)
 
 def check_internet_connection():
    try:
@@ -12,11 +25,9 @@ def check_internet_connection():
    except subprocess.CalledProcessError:
       return False
 
-def log_sensor_data(data, logger):
-    query = logger.log(data.temperature, data.pH, data.dOxygen, data.salinity)
-    logger.execute_query(query)
-
 def update_sensor_data(gui, sensor_data, logger):
+    next_log_time = math.floor(time.time())
+
     while True:
         data = next(sensor_data.get_continuous_sensor_data())
         gui.update_sensor_data(
@@ -29,12 +40,22 @@ def update_sensor_data(gui, sensor_data, logger):
             internet="Connected" if check_internet_connection() else "Disconnected"
         )
         
-        # update graph
         gui.update_graph(data.temperature, data.pH, data.dOxygen, data.salinity)
 
-        # call the log_sensor_data function
-        log_sensor_data(data, logger)
+        current_time = math.floor(time.time())  # Round down the current time to the nearest second
 
+        if current_time >= next_log_time:
+            log_sensor_data(data, logger)
+            next_log_time = current_time + 1
+
+def log_sensor_data(data, logger):
+    try:
+        query = logger.log(data.temperature, data.pH, data.dOxygen, data.salinity)
+        logger.execute_query(query)
+    except Exception as e:
+        print(f"Error logging sensor data: {e}")
+        
+        
 def main():
     window = Tk()
     window.geometry("800x480")
@@ -59,15 +80,13 @@ def main():
     # create a logger instance
     db_url = "sqlite:///swims_log.db"
     logger = SensorDataLogger(db_url)
+    
 
     # start a separate thread to update sensor data and log it
     threading.Thread(target=update_sensor_data, args=(gui, sensor_data, logger), daemon=True).start()
 
     window.resizable(False, False)
     window.mainloop()
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
