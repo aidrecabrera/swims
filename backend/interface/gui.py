@@ -1,14 +1,11 @@
 import time
+import numpy as np
 from tkinter import Tk, Canvas, Button, PhotoImage
-from pathlib import Path
-from .utils import relative_to_assets 
 from PIL import Image, ImageTk
-import matplotlib
-matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from monitor.monitor import THRESHOLDS
-import numpy as np
+from .utils import relative_to_assets
 
 class SensorGraph:
     def __init__(self, master, width=5, height=4, dpi=100, duration=60):
@@ -27,12 +24,6 @@ class SensorGraph:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.master)
         self.canvas.get_tk_widget().place(x=25, y=150, width=497, height=215)
 
-        self.data = {
-            "temperature": [],
-            "pH": [],
-            "dOxygen": [],
-            "salinity": []
-        }
         self.lines = {}
         self.init_plot()
 
@@ -43,18 +34,25 @@ class SensorGraph:
         self.lines["salinity"], = self.ax.plot([], [], label="Salinity")
         self.ax.legend(facecolor='none', edgecolor='none')
 
+        self.data = {
+            "temperature": np.array([], dtype=float),
+            "pH": np.array([], dtype=float),
+            "dOxygen": np.array([], dtype=float),
+            "salinity": np.array([], dtype=float)
+        }
+
     def update_plot(self, time, temperature, pH, dOxygen, salinity):
         # Update data arrays
         if temperature >= 0:
-            self.data["temperature"].append(temperature)
+            self.data["temperature"] = np.append(self.data["temperature"], temperature)
 
         if pH >= 0:
-            self.data["pH"].append(pH)
+            self.data["pH"] = np.append(self.data["pH"], pH)
 
         if dOxygen >= 0:
-            self.data["dOxygen"].append(dOxygen)
+            self.data["dOxygen"] = np.append(self.data["dOxygen"], dOxygen)
 
-        self.data["salinity"].append(salinity)
+        self.data["salinity"] = np.append(self.data["salinity"], salinity)
 
         # Update plot only if needed
         if len(self.data["temperature"]) > 0:
@@ -98,8 +96,6 @@ class GUI:
         self.create_sensor_labels()
         
         self.sensor_graph = SensorGraph(window, duration=30)
-        self.update_graph(temperature, pH, dOxygen, salinity)
-        
         self.temperature = temperature
         self.pH = pH
         self.dOxygen = dOxygen
@@ -118,9 +114,8 @@ class GUI:
         self.create_metadata_sensor()
         self.create_sensor_status()
         self.create_button()
-
-    def update_graph(self, temperature, pH, dOxygen, salinity):
-        self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)
+        
+        self.update_gui(temperature, pH, dOxygen, salinity)
 
     def create_canvas(self):
         canvas = Canvas(
@@ -347,12 +342,16 @@ class GUI:
 
         if sim_signal is not None:
             self.sensor_data["SIM Signal"] = sim_signal
-            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["SIM Signal"]], text=sim_signal)
+            self.canvas.itemconfig(self.sensor_status_elements["SIM Signal"], text=sim_signal)
 
         if sensors is not None:
             self.sensor_data["Sensors"] = sensors
-            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Sensors"]], text=sensors)
+            self.canvas.itemconfig(self.sensor_status_elements["Sensors"], text=sensors)
 
         if internet is not None:
             self.sensor_data["Internet Access"] = internet
-            self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Internet Access"]], text=internet)
+            self.canvas.itemconfig(self.sensor_status_elements["Internet Access"], text=internet)
+
+    def update_gui(self, temperature, pH, dOxygen, salinity):
+        self.update_sensor_data(temperature, pH, dOxygen, salinity)
+        self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)

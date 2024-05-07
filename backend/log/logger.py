@@ -5,6 +5,7 @@ import datetime
 import sys
 import sqlalchemy as sa
 from sqlalchemy import Table, MetaData
+from monitor.monitor import SensorDataMonitor
 
 load_dotenv()
 
@@ -26,13 +27,15 @@ class SensorDataLogger:
         metadata (sqlalchemy.MetaData): The metadata of the local database.
         sensor_data (sqlalchemy.Table): The table for storing sensor data in the local database.
 
-    """ 
+    """
 
     def __init__(self, db_url):
         self.engine = sa.create_engine(db_url)
         self.connection = self.engine.connect()
         self.metadata = MetaData()
         self.sensor_data = Table('sensor_data', self.metadata, autoload_with=self.engine)
+        self.anomaly_logs = Table('anomaly_logs', self.metadata, autoload_with=self.engine)
+        self.monitor = SensorDataMonitor()
 
     def sync_to_supabase(self):
         """
@@ -40,6 +43,7 @@ class SensorDataLogger:
         """
         # execute the query to retrieve logs from the local database
         logs_result = self.execute_query(self.get_logs())
+        logs_anomaly_result = self.execute_query(self.get_logs_anomaly())
 
         if logs_result:
             for log in logs_result:
@@ -52,9 +56,20 @@ class SensorDataLogger:
                     "salinity": log.salinity,
                 }
                 # upsert the log to the Supabase database
-                supabase.table('sensor_data').upsert(data, ignore_duplicates=True).execute()    
-
-
+                supabase.table('sensor_data').upsert(data, ignore_duplicates=True).execute()
+                
+        if logs_anomaly_result:
+            for log in logs_anomaly_result:
+                data = {
+                    "id": log.id,
+                    "timestamp": log.timestamp.isoformat(),
+                    "temperature": log.temperature,
+                    "ph": log.ph,
+                    "dissolved_oxygen": log.dissolved_oxygen,
+                    "salinity": log.salinity,
+                }
+                # upsert the log to the Supabase database
+                supabase.table('anomaly_logs').upsert(data, ignore_duplicates=True).execute()
 
     def log(self, temperature, ph, dissolved_oxygen, salinity):
         """
@@ -77,8 +92,37 @@ class SensorDataLogger:
             dissolved_oxygen=str(dissolved_oxygen),
             salinity=salinity
         )
+        
         return query
+    
+    def log_anomaly(self, temperature, ph, dissolved_oxygen, salinity):
+        """
+        Log an anomaly in the sensor data to the anomaly_logs table.
 
+        Args:
+            temperature (float): The temperature value.
+            ph (float): The pH value.
+            dissolved_oxygen (float): The dissolved oxygen value.
+            salinity (float): The salinity value.
+
+        Returns:
+            sqlalchemy.sql.dml.Insert: The insert query.
+        """
+        
+        if not (self.monitor.check_parameter_level('temperature', temperature) and
+                self.monitor.check_parameter_level('ph', ph) and
+                self.monitor.check_parameter_level('dissolved_oxygen', dissolved_oxygen) and
+                self.monitor.check_parameter_level('salinity', salinity)):
+            anomaly_query = sa.insert(self.anomaly_logs).values(
+                temperature=temperature,
+                ph=ph,
+                dissolved_oxygen=str(dissolved_oxygen),
+                salinity=salinity
+            )
+            return anomaly_query
+        else:
+            return None
+            
     def get_logs(self):
         """
         Get all sensor data logs from the local database.
@@ -88,6 +132,17 @@ class SensorDataLogger:
 
         """
         query = sa.select(self.sensor_data)
+        return query
+    
+    def get_logs_anomaly(self):
+        """
+        Get all anomaly logs from the local database.
+
+        Returns:
+            sqlalchemy.sql.selectable.Select: The select query.
+
+        """
+        query = sa.select(self.anomaly_logs)
         return query
 
     def get_logs_by_timestamp(self, timestamp):
