@@ -1,13 +1,12 @@
 import time
-from tkinter import Tk, Canvas, Button, PhotoImage
-from pathlib import Path
+from tkinter import Label, Canvas, Button, PhotoImage, Toplevel
 from .utils import relative_to_assets 
 from PIL import Image, ImageTk
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from monitor.monitor import THRESHOLDS
+from monitor.monitor import THRESHOLDS, SensorDataMonitor
 import numpy as np
 
 class SensorGraph:
@@ -109,6 +108,8 @@ class GUI:
         self.pH = pH
         self.dOxygen = dOxygen
         self.salinity = salinity
+        self.sensor_monitor = SensorDataMonitor()
+        self.popup = None
         
         self.sensor_data = {
             "pH": {"value": self.pH, "normal_range": "6.5 - 8.5"},
@@ -123,6 +124,49 @@ class GUI:
         self.create_metadata_sensor()
         self.create_sensor_status()
         self.create_button()
+
+    def check_sensor_values(self, temperature, pH, dOxygen, salinity):
+        if not self.sensor_monitor.check_parameter_level('temperature', temperature):
+            self.show_warning_popup('Temperature', temperature)
+        if not self.sensor_monitor.check_parameter_level('ph', pH):
+            self.show_warning_popup('pH', pH)
+        if not self.sensor_monitor.check_parameter_level('dissolved_oxygen', dOxygen):
+            self.show_warning_popup('Dissolved Oxygen', dOxygen)
+        if not self.sensor_monitor.check_parameter_level('salinity', salinity):
+            self.show_warning_popup('Salinity', salinity)
+
+    def show_warning_popup(self, parameters):
+        if self.popup and self.popup.winfo_exists():  # Check if popup exists and is visible
+            self.update_popup_content(parameters)
+        else:
+            self.create_popup(parameters)
+
+    def create_popup(self, parameters):
+        self.popup = Toplevel(self.window)
+        self.popup.title("Warning")
+        self.popup.geometry("300x150")
+        self.popup.configure(bg="#FFFFFF")
+
+        message = "The following are out of range:\n"
+        for parameter, value in parameters.items():
+            message += f"{parameter}: {value}\n"
+
+        label = Label(self.popup, text=message, font=("Arial", 16), bg="#FFFFFF")
+        label.pack(pady=20)
+
+        def close_popup():
+            self.popup.destroy()
+
+        button = Button(self.popup, text="Okay", command=close_popup, bg="#ADD8E6", font=("Arial", 12))
+        button.pack(pady=10)
+
+    def update_popup_content(self, parameters):
+        message = "The following are out of range:\n"
+        for parameter, value in parameters.items():
+            message += f"{parameter}: {value}\n"
+
+        label = self.popup.children['!label']
+        label.configure(text=message)
 
     def update_graph(self, temperature, pH, dOxygen, salinity):
         self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)
@@ -314,6 +358,7 @@ class GUI:
         self.button_1.place(x=532, y=264)
 
     def update_sensor_data(self, temperature=None, pH=None, dOxygen=None, salinity=None, sim_signal=None, sensors=None, internet=None):
+        self.check_sensor_values(temperature, pH, dOxygen, salinity)
         if temperature is not None and temperature >= 0:
             self.temperature = temperature
             self.sensor_data["Temperature"]["value"] = temperature
@@ -361,3 +406,4 @@ class GUI:
         if internet is not None:
             self.sensor_data["Internet Access"] = internet
             self.canvas.itemconfig(self.sensor_status_elements[self.sensor_data["Internet Access"]], text=internet)
+        
