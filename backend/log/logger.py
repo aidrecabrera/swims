@@ -1,3 +1,4 @@
+import datetime
 import sqlalchemy as sa
 from sqlalchemy import Table, MetaData
 
@@ -25,7 +26,7 @@ class SensorDataLogger:
         self.metadata = MetaData()
         self.sensor_data = Table('sensor_data', self.metadata, autoload_with=self.engine)
 
-    def log(self, temperature, ph, dissolved_oxygen, salinity):
+    def log(self, temperature, ph, dissolved_oxygen, salinity, timestamp=None):
         """
         Log sensor data to the database.
 
@@ -39,10 +40,14 @@ class SensorDataLogger:
             sqlalchemy.sql.dml.Insert: The insert query.
 
         """
+        if timestamp is None:
+            timestamp = datetime.datetime.now()
+
         query = sa.insert(self.sensor_data).values(
+            timestamp=timestamp,
             temperature=temperature,
             ph=ph,
-            dissolved_oxygen=str(dissolved_oxygen),  # convert to string
+            dissolved_oxygen=str(dissolved_oxygen),
             salinity=salinity
         )
         return query
