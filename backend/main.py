@@ -1,6 +1,4 @@
-import random
 import threading
-import time
 from tkinter import Tk
 from interface.gui import GUI
 from data.realtime_data import SensorData
