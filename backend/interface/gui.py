@@ -1,5 +1,5 @@
 import time
-from tkinter import Label, Canvas, Button, PhotoImage, Toplevel
+from tkinter import BOTH, E, FLAT, X, Frame, Label, Canvas, Button, PhotoImage, Toplevel
 from .utils import relative_to_assets 
 from PIL import Image, ImageTk
 import matplotlib
@@ -126,17 +126,18 @@ class GUI:
         self.create_button()
 
     def check_sensor_values(self, temperature, pH, dOxygen, salinity):
-        if not self.sensor_monitor.check_parameter_level('temperature', temperature):
-            self.show_warning_popup('Temperature', temperature)
-        if not self.sensor_monitor.check_parameter_level('ph', pH):
-            self.show_warning_popup('pH', pH)
-        if not self.sensor_monitor.check_parameter_level('dissolved_oxygen', dOxygen):
-            self.show_warning_popup('Dissolved Oxygen', dOxygen)
-        if not self.sensor_monitor.check_parameter_level('salinity', salinity):
-            self.show_warning_popup('Salinity', salinity)
+        parameters = {
+            'Temperature': temperature,
+            'pH': pH,
+            'Dissolved Oxygen': dOxygen,
+            'Salinity': salinity
+        }
+        unstable_parameters = {param: value for param, value in parameters.items() if not self.sensor_monitor.check_parameter_level(param.lower().replace(' ', '_'), value)}
+        if unstable_parameters:
+            self.show_warning_popup(unstable_parameters)
 
     def show_warning_popup(self, parameters):
-        if self.popup and self.popup.winfo_exists():  # Check if popup exists and is visible
+        if self.popup and self.popup.winfo_exists():  
             self.update_popup_content(parameters)
         else:
             self.create_popup(parameters)
@@ -144,29 +145,43 @@ class GUI:
     def create_popup(self, parameters):
         self.popup = Toplevel(self.window)
         self.popup.title("Warning")
-        self.popup.geometry("300x150")
-        self.popup.configure(bg="#FFFFFF")
+        self.popup.geometry("480x100")
+        self.popup.configure(bg="#F5F5F5")
 
-        message = "The following are out of range:\n"
-        for parameter, value in parameters.items():
-            message += f"{parameter}: {value}\n"
+        content_frame = Frame(self.popup, bg="#FFFFFF", padx=20, pady=20)
+        content_frame.pack(expand=True, fill=BOTH)
 
-        label = Label(self.popup, text=message, font=("Arial", 16), bg="#FFFFFF")
-        label.pack(pady=20)
+        message = ", ".join([f"{param}" for param in parameters.keys()]) + " is not stabilized."
+        label = Label(content_frame, text=message, font=("Arial", 12), bg="#FFFFFF", fg="#FF0000")  # Red text color
+        label.pack()
+
+        separator = Frame(content_frame, height=1, bg="#E0E0E0", bd=0)
+        separator.pack(fill=X, pady=10)
+
+        button_frame = Frame(content_frame, bg="#FFFFFF")
+        button_frame.pack(anchor=E)  # Align button to the right
 
         def close_popup():
             self.popup.destroy()
 
-        button = Button(self.popup, text="Okay", command=close_popup, bg="#ADD8E6", font=("Arial", 12))
-        button.pack(pady=10)
+        button = Button(button_frame, text="OK", command=close_popup, bg="#007BFF", fg="#FFFFFF", font=("Arial", 10), padx=20, pady=5, relief=FLAT)
+        button.pack()
+
+        self.popup.update_idletasks()
+        width = self.popup.winfo_width()
+        height = self.popup.winfo_height()
+        x = (self.popup.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.popup.winfo_screenheight() // 2) - (height // 2)
+        self.popup.geometry(f"{width}x{height}+{x}+{y}")
 
     def update_popup_content(self, parameters):
-        message = "The following are out of range:\n"
-        for parameter, value in parameters.items():
-            message += f"{parameter}: {value}\n"
+        if '!label' not in self.popup.children:
+            label = Label(self.popup)
+            label.pack()
+        else:
+            label = self.popup.children['!label']
 
-        label = self.popup.children['!label']
-        label.configure(text=message)
+        label['text'] = '\n'.join(f'{param}: {value}' for param, value in parameters.items())
 
     def update_graph(self, temperature, pH, dOxygen, salinity):
         self.sensor_graph.update_plot(time.time(), temperature, pH, dOxygen, salinity)
