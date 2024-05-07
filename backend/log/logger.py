@@ -41,11 +41,10 @@ class SensorDataLogger:
         # execute the query to retrieve logs from the local database
         logs_result = self.execute_query(self.get_logs())
 
-        # check if logs_result is not None and is iterable
         if logs_result:
-            # iterate over the logs
             for log in logs_result:
                 data = {
+                    "id": log.id,
                     "timestamp": log.timestamp.isoformat(),
                     "temperature": log.temperature,
                     "ph": log.ph,
@@ -53,10 +52,11 @@ class SensorDataLogger:
                     "salinity": log.salinity,
                 }
                 # upsert the log to the Supabase database
-                supabase.table('sensor_data').upsert(data).execute()
+                supabase.table('sensor_data').upsert(data, ignore_duplicates=True).execute()    
 
 
-    def log(self, temperature, ph, dissolved_oxygen, salinity, timestamp=None):
+
+    def log(self, temperature, ph, dissolved_oxygen, salinity):
         """
         Log sensor data to the local database.
 
@@ -65,17 +65,13 @@ class SensorDataLogger:
             ph (float): The pH value.
             dissolved_oxygen (float): The dissolved oxygen value.
             salinity (float): The salinity value.
-            timestamp (datetime.datetime): The timestamp of the log. If None, the current time is used.
+            timestamp (datetime.datetime, optional): The timestamp of the log. If None, the current time is used.
 
         Returns:
             sqlalchemy.sql.dml.Insert: The insert query.
-
         """
-        if timestamp is None:
-            timestamp = datetime.datetime.now()
 
         query = sa.insert(self.sensor_data).values(
-            timestamp=timestamp,
             temperature=temperature,
             ph=ph,
             dissolved_oxygen=str(dissolved_oxygen),

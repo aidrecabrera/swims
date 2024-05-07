@@ -45,8 +45,11 @@ def log_sensor_data(data, logger):
     try:
         query = logger.log(data.temperature, data.pH, data.dOxygen, data.salinity)
         logger.execute_query(query)
+        
+        threading.Thread(target=logger.sync_to_supabase).start()
     except Exception as e:
         print(f"Error logging sensor data: {e}")
+
         
         
 def main():
