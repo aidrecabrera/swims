@@ -26,8 +26,6 @@ def check_internet_connection():
       return False
 
 def update_sensor_data(gui, sensor_data, logger):
-    next_log_time = math.floor(time.time())
-
     while True:
         data = next(sensor_data.get_continuous_sensor_data())
         gui.update_sensor_data(
@@ -41,12 +39,7 @@ def update_sensor_data(gui, sensor_data, logger):
         )
         
         gui.update_graph(data.temperature, data.pH, data.dOxygen, data.salinity)
-
-        current_time = math.floor(time.time())  # Round down the current time to the nearest second
-
-        if current_time >= next_log_time:
-            log_sensor_data(data, logger)
-            next_log_time = current_time + 1
+        log_sensor_data(data, logger)
 
 def log_sensor_data(data, logger):
     try:
@@ -80,7 +73,6 @@ def main():
     # create a logger instance
     db_url = "sqlite:///swims_log.db"
     logger = SensorDataLogger(db_url)
-    
 
     # start a separate thread to update sensor data and log it
     threading.Thread(target=update_sensor_data, args=(gui, sensor_data, logger), daemon=True).start()

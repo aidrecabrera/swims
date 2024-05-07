@@ -44,6 +44,7 @@ class SensorGraph:
         self.ax.legend(facecolor='none', edgecolor='none')
 
     def update_plot(self, time, temperature, pH, dOxygen, salinity):
+        # Update data arrays
         if temperature >= 0:
             self.data["temperature"].append(temperature)
 
@@ -55,44 +56,38 @@ class SensorGraph:
 
         self.data["salinity"].append(salinity)
 
+        # Update plot only if needed
         if len(self.data["temperature"]) > 0:
             x = np.arange(len(self.data["temperature"]))
-
-            self.lines["temperature"].set_data(x, self.data["temperature"])
-            self.ax.relim()
-            self.ax.autoscale_view(True, True, True)
+            self.lines["temperature"].set_xdata(x)
+            self.lines["temperature"].set_ydata(self.data["temperature"])
 
         if len(self.data["pH"]) > 0:
             x = np.arange(len(self.data["pH"]))
-
-            self.lines["pH"].set_data(x, self.data["pH"])
-            self.ax.relim()
-            self.ax.autoscale_view(True, True, True)
+            self.lines["pH"].set_xdata(x)
+            self.lines["pH"].set_ydata(self.data["pH"])
 
         if len(self.data["dOxygen"]) > 0:
             x = np.arange(len(self.data["dOxygen"]))
-
-            self.lines["dOxygen"].set_data(x, self.data["dOxygen"])
-            self.ax.relim()
-            self.ax.autoscale_view(True, True, True)
+            self.lines["dOxygen"].set_xdata(x)
+            self.lines["dOxygen"].set_ydata(self.data["dOxygen"])
 
         if len(self.data["salinity"]) > 0:
             x = np.arange(len(self.data["salinity"]))
+            self.lines["salinity"].set_xdata(x)
+            self.lines["salinity"].set_ydata(self.data["salinity"])
 
-            self.lines["salinity"].set_data(x, self.data["salinity"])
-            self.ax.relim()
-            self.ax.autoscale_view(True, True, True)
+        # Update limits and autoscale
+        self.ax.relim()
+        self.ax.autoscale_view(True, True, True)
 
+        # Redraw canvas
         self.canvas.draw()
 
-        if len(self.data["temperature"]) > self.duration:
-            self.data["temperature"] = self.data["temperature"][-self.duration:]
-        if len(self.data["pH"]) > self.duration:
-            self.data["pH"] = self.data["pH"][-self.duration:]
-        if len(self.data["dOxygen"]) > self.duration:
-            self.data["dOxygen"] = self.data["dOxygen"][-self.duration:]
-        if len(self.data["salinity"]) > self.duration:
-            self.data["salinity"] = self.data["salinity"][-self.duration:]
+        # Trim data arrays if needed
+        for key in self.data.keys():
+            if len(self.data[key]) > self.duration:
+                self.data[key] = self.data[key][-self.duration:]
 
 class GUI:
     def __init__(self, window, temperature, pH, dOxygen, salinity):
