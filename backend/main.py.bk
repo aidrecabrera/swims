@@ -49,9 +49,16 @@ def main():
         try:
             """Main function."""
             window = Tk()
-            window.geometry("{0}x{1}+0+0".format(window.winfo_screenwidth(), window.winfo_screenheight()))
-            window.overrideredirect(True)
+            window.geometry("800x480")
             window.configure(bg="#FFFFFF")
+            window.attributes('-fullscreen', True)
+
+            def toggle_fullscreen(_=None):
+                """Toggle fullscreen mode."""
+                window.attributes('-fullscreen', not window.attributes('-fullscreen'))
+
+            window.bind('<F11>', toggle_fullscreen)
+            window.bind('<Escape>', toggle_fullscreen)
 
             sensor_data = SensorData()
             latest_data = sensor_data.get_latest_sensor_data()

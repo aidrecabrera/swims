@@ -1,16 +1,18 @@
 import os
+import subprocess
 from supabase import create_client, Client
 from dotenv import load_dotenv
-import datetime
-import sys
 import sqlalchemy as sa
-from sqlalchemy import Table, MetaData
+from sqlalchemy import Table, MetaData, select, insert
 from monitor.monitor import SensorDataMonitor
 
 load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
+SUPABASE_URL = "https://kpypbiqtjzcctqrcrnwt.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtweXBiaXF0anpjY3RxcmNybnd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ4MjQ5NDcsImV4cCI6MjAzMDQwMDk0N30.NqOmREZ7PNWhXOAOarrcvGOyzC7Xhch_ThwOOt4z1rA"
+
+url: str = SUPABASE_URL
+key: str = SUPABASE_KEY
 supabase: Client = create_client(url, key)
 
 
@@ -23,15 +25,15 @@ class SensorDataLogger:
 
     Attributes:
         engine (sqlalchemy.engine.Engine): The local database engine.
-        connection (sqlalchemy.engine.Connection): The local database connection.
         metadata (sqlalchemy.MetaData): The metadata of the local database.
         sensor_data (sqlalchemy.Table): The table for storing sensor data in the local database.
+        anomaly_logs (sqlalchemy.Table): The table for storing anomaly logs in the local database.
+        monitor (SensorDataMonitor): The sensor data monitor instance.
 
     """
 
     def __init__(self, db_url):
         self.engine = sa.create_engine(db_url)
-        self.connection = self.engine.connect()
         self.metadata = MetaData()
         self.sensor_data = Table('sensor_data', self.metadata, autoload_with=self.engine)
         self.anomaly_logs = Table('anomaly_logs', self.metadata, autoload_with=self.engine)
@@ -41,35 +43,42 @@ class SensorDataLogger:
         """
         Synchronize the local database with the Supabase database.
         """
-        # execute the query to retrieve logs from the local database
-        logs_result = self.execute_query(self.get_logs())
-        logs_anomaly_result = self.execute_query(self.get_logs_anomaly())
+        if subprocess.check_output(["ping", "-c", "1", "8.8.8.8"]):
+            print("Syncing to server.")
+            with self.engine.connect() as conn:
+                logs_result = conn.execute(select(self.sensor_data))
+                logs_anomaly_result = conn.execute(select(self.anomaly_logs))
 
-        if logs_result:
-            for log in logs_result:
-                data = {
-                    "id": log.id,
-                    "timestamp": log.timestamp.isoformat(),
-                    "temperature": log.temperature,
-                    "ph": log.ph,
-                    "dissolved_oxygen": log.dissolved_oxygen,
-                    "salinity": log.salinity,
-                }
-                # upsert the log to the Supabase database
-                supabase.table('sensor_data').upsert(data, ignore_duplicates=True).execute()
-                
-        if logs_anomaly_result:
-            for log in logs_anomaly_result:
-                data = {
-                    "id": log.id,
-                    "timestamp": log.timestamp.isoformat(),
-                    "temperature": log.temperature,
-                    "ph": log.ph,
-                    "dissolved_oxygen": log.dissolved_oxygen,
-                    "salinity": log.salinity,
-                }
-                # upsert the log to the Supabase database
-                supabase.table('anomaly_logs').upsert(data, ignore_duplicates=True).execute()
+                sensor_data = [
+                    {
+                        "id": log.id,
+                        "timestamp": log.timestamp.isoformat(),
+                        "temperature": log.temperature,
+                        "ph": log.ph,
+                        "dissolved_oxygen": log.dissolved_oxygen,
+                        "salinity": log.salinity,
+                    }
+                    for log in logs_result
+                ]
+
+                anomaly_data = [
+                    {
+                        "id": log.id,
+                        "timestamp": log.timestamp.isoformat(),
+                        "temperature": log.temperature,
+                        "ph": log.ph,
+                        "dissolved_oxygen": log.dissolved_oxygen,
+                        "salinity": log.salinity,
+                    }
+                    for log in logs_anomaly_result
+                ]
+
+                if sensor_data:
+                    supabase.table('sensor_data').upsert(sensor_data, ignore_duplicates=True).execute()
+                if anomaly_data:
+                    supabase.table('anomaly_logs').upsert(anomaly_data, ignore_duplicates=True).execute()
+        else:
+            print("No internet connection. Skipping synchronization to server.")
 
     def log(self, temperature, ph, dissolved_oxygen, salinity):
         """
@@ -80,21 +89,18 @@ class SensorDataLogger:
             ph (float): The pH value.
             dissolved_oxygen (float): The dissolved oxygen value.
             salinity (float): The salinity value.
-            timestamp (datetime.datetime, optional): The timestamp of the log. If None, the current time is used.
 
         Returns:
             sqlalchemy.sql.dml.Insert: The insert query.
         """
-
-        query = sa.insert(self.sensor_data).values(
+        query = insert(self.sensor_data).values(
             temperature=temperature,
             ph=ph,
             dissolved_oxygen=str(dissolved_oxygen),
             salinity=salinity
         )
-        
         return query
-    
+
     def log_anomaly(self, temperature, ph, dissolved_oxygen, salinity):
         """
         Log an anomaly in the sensor data to the anomaly_logs table.
@@ -108,12 +114,11 @@ class SensorDataLogger:
         Returns:
             sqlalchemy.sql.dml.Insert: The insert query.
         """
-        
         if not (self.monitor.check_parameter_level('temperature', temperature) and
                 self.monitor.check_parameter_level('ph', ph) and
                 self.monitor.check_parameter_level('dissolved_oxygen', dissolved_oxygen) and
                 self.monitor.check_parameter_level('salinity', salinity)):
-            anomaly_query = sa.insert(self.anomaly_logs).values(
+            anomaly_query = insert(self.anomaly_logs).values(
                 temperature=temperature,
                 ph=ph,
                 dissolved_oxygen=str(dissolved_oxygen),
@@ -122,57 +127,15 @@ class SensorDataLogger:
             return anomaly_query
         else:
             return None
-            
-    def get_logs(self):
-        """
-        Get all sensor data logs from the local database.
 
-        Returns:
-            sqlalchemy.sql.selectable.Select: The select query.
-
+    def execute_queries(self, queries):
         """
-        query = sa.select(self.sensor_data)
-        return query
-    
-    def get_logs_anomaly(self):
-        """
-        Get all anomaly logs from the local database.
-
-        Returns:
-            sqlalchemy.sql.selectable.Select: The select query.
-
-        """
-        query = sa.select(self.anomaly_logs)
-        return query
-
-    def get_logs_by_timestamp(self, timestamp):
-        """
-        Get sensor data logs from the local database based on timestamp.
+        Execute multiple database queries in a single transaction.
 
         Args:
-            timestamp (datetime.datetime): The timestamp to filter the logs.
-
-        Returns:
-            sqlalchemy.sql.selectable.Select: The select query.
+            queries (list): A list of SQLAlchemy queries to execute.
 
         """
-        query = sa.select(self.sensor_data).where(self.sensor_data.c.timestamp == timestamp)
-        return query
-
-    def execute_query(self, query):
-        """
-        Execute a database query.
-
-        Args:
-            query (sqlalchemy.sql.expression.Executable): The query to execute.
-
-        Returns:
-            list or None: The query result as a list of rows, or None if the query is not a select query.
-
-        """
-        with self.connection.begin():
-            result = self.connection.execute(query)
-            if isinstance(query, sa.sql.selectable.Select):
-                return result.fetchall()
-            else:
-                return None
+        with self.engine.begin() as conn:
+            for query in queries:
+                conn.execute(query)
