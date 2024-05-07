@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-asfrom monitor.monitor import THRESHOLDS
+from monitor.monitor import THRESHOLDS
 import numpy as np
 
 class SensorGraph:
