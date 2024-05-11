@@ -7,13 +7,13 @@ export default function LandingPage() {
             <header className="px-4 mt-2 lg:px-6 h-14 flex items-center container">
                 <Link className="flex items-center justify-center gap-2 mt-2" href="#">
                     <DropletsIcon className="h-10 w-10" />
-                    <span className="font-semibold text-lg">SWIMS</span>
+                    <span className="font-bold text-lg">SWIMS</span>
                 </Link>
                 <nav className="ml-auto flex gap-2 sm:gap-2 z-50">
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="#">
+                    <Link to="/login" className="text-sm font-medium hover:underline underline-offset-4" href="#">
                         Login
                     </Link>
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="#">
+                    <Link to="/register" className="text-sm font-medium hover:underline underline-offset-4" href="#">
                         Register
                     </Link>
                 </nav>
@@ -23,7 +23,7 @@ export default function LandingPage() {
                     <div className="container px-4 md:px-6">
                         <div className="flex flex-col items-center space-y-4 text-center">
                             <div className="space-y-2">
-                                <h1 className="text-3xl max-w-5xl font-semibold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                                <h1 className="text-3xl max-w-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                                     Sustainable Water Inspection and Monitoring System. Pioneers solutions for aquaculture's evolutions.
                                 </h1>
                             </div>
@@ -115,10 +115,10 @@ export default function LandingPage() {
                                         About SWIMS
                                     </div>
                                     <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                                        Sustainable Water Monitoring for the Future
+                                        Sustainable Water Monitoring
                                     </h2>
                                     <p className="max-w-[600px] text-text md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-primary-foreground">
-                                        SWIMS is a cutting-edge solution that combines advanced sensors, real-time data analysis, and
+                                        SWIMS is a solution that combines advanced sensors, real-time data analysis, and
                                         intuitive reporting to revolutionize water quality monitoring and management. Our mission is to
                                         ensure the sustainability and safety of water resources for generations to come.
                                     </p>

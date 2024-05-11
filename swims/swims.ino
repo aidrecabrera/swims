@@ -27,7 +27,7 @@ bool error;
 
 // pin definitions
 #define EC_PIN A1
-#define PH4502C_TEMPERATURE_PIN A1
+#define PH4502C_TEMPERATURE_PIN A3
 #define PH4502C_PH_PIN A0
 #define PH4502C_PH_TRIGGER_PIN 14
 #define DS18B20_PIN 2
@@ -81,14 +81,8 @@ void serialComms(bool status, uint8_t buffer[20], pb_ostream_t &stream)
 // salinity measurement
 float readSalinity(float tempVal)
 {
-  static unsigned long timepoint = millis();
-  if (millis() - timepoint > 1000U)
-  { // time interval: 1s
-    timepoint = millis();
-    voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
-    ecValue = ec.readEC(voltage, tempVal);        // convert voltage to EC with temperature compensation
-    return ecValue;
-  }
+  voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
+  ecValue = ec.readEC(voltage, tempVal);        // convert voltage to EC with temperature compensation
   ec.calibration(voltage, tempVal);
   return ecValue;
 }
