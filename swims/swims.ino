@@ -39,7 +39,7 @@ bool error;
 #define ADC_RESOLUTION 1024.0f
 
 // globals
-float voltage, ecValue, temperature = 0;
+float voltage, ecValue, temperature = 25;
 String userNumber = "+639604377530";
 
 // objects
@@ -78,13 +78,26 @@ void serialComms(bool status, uint8_t buffer[20], pb_ostream_t &stream)
   }
 }
 
-// salinity measurement
-float readSalinity(float tempVal)
+// Salinity measurement
+float readSalinity()
 {
+<<<<<<< HEAD
   voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
   ecValue = ec.readEC(voltage, tempVal);        // convert voltage to EC with temperature compensation
   ec.calibration(voltage, tempVal);
   return ecValue;
+=======
+  static unsigned long timepoint = millis();
+  if (millis() - timepoint > 100U) // Change the time interval to 100ms
+  {
+    timepoint = millis();
+    voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
+    ecValue = ec.readEC(voltage, temperature);    // convert voltage to EC with temperature compensation
+    return ecValue;
+  }
+  ec.calibration(voltage, temperature);
+  return -1.0; // Return a sentinel value (-1.0) if no new reading is available
+>>>>>>> c575ba1 (fixed bug for salinity reading)
 }
 
 // dissolved oxygen measurement
@@ -115,7 +128,6 @@ float estimateDissolvedOxygen(float phLevel, float temperature, float salinity)
 void setup()
 {
   Serial.begin(9600); // for sensors
-  GSM.begin(4800);    // for GSM module
   // sensor initializations
   ph4502c.init();
   ec.begin();
@@ -133,7 +145,7 @@ void loop()
   SensorData sensorData = SensorData_init_zero;
   sensorData.temperature = tempSensor.getTempCByIndex(0);                                                   // Temperature Measurement
   sensorData.pH = ph4502c.read_ph_level();                                                                  // pH Measurement
-  sensorData.salinity = readSalinity(sensorData.temperature);                                               // Salinity Measurement
+  sensorData.salinity = readSalinity();                                                                     // Salinity Measurement
   sensorData.dOxygen = estimateDissolvedOxygen(sensorData.pH, sensorData.temperature, sensorData.salinity); // Dissolved Oxygen Measurement
 
   // protobuf encoding

@@ -102,11 +102,11 @@ class GUI:
         self.salinity = salinity
         
         self.sensor_data = {
-            "pH": {"value": self.pH, "normal_range": "6.5 - 8.5"},
-            "Salinity": {"value": self.salinity, "normal_range": "6.5 - 8.5"},
-            "Temperature": {"value": self.temperature, "normal_range": "6.5 - 8.5"},
-            "Dissolved Oxygen": {"value": f"{self.dOxygen}/L", "normal_range": "6.5 - 8.5"},
-            "SIM Signal": "Strong",
+            "pH": {"value": self.pH, "normal_range": "6.5 - 9.0"},
+            "Salinity": {"value": self.salinity, "normal_range": "4.5 - 5.5"},
+            "Temperature": {"value": self.temperature, "normal_range": "25.0 - 32.0"},
+            "Dissolved Oxygen": {"value": f"{self.dOxygen}/L", "normal_range": "4.8 - 5.2"},
+            "SIM Signal": "Disconnected",
             "Sensors": "Running",
             "Internet Access": "Connected"
         }
