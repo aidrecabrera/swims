@@ -82,6 +82,7 @@ void serialComms(bool status, uint8_t buffer[20], pb_ostream_t &stream)
 float readSalinity()
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
   ecValue = ec.readEC(voltage, tempVal);        // convert voltage to EC with temperature compensation
   ec.calibration(voltage, tempVal);
@@ -98,6 +99,12 @@ float readSalinity()
   ec.calibration(voltage, temperature);
   return -1.0; // Return a sentinel value (-1.0) if no new reading is available
 >>>>>>> c575ba1 (fixed bug for salinity reading)
+=======
+  voltage = analogRead(EC_PIN) / 1024.0 * 5000; // read the voltage
+  ecValue = ec.readEC(voltage, temperature);    // convert voltage to EC with temperature compensation
+  ec.calibration(voltage, temperature);
+  return ecValue;
+>>>>>>> 1d24176 (query)
 }
 
 // dissolved oxygen measurement
