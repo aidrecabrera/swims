@@ -396,17 +396,7 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
                 dataKey="timestamp"
                 tickFormatter={(value: any) => format(new Date(value), "HH:mm")}
               />
-              <YAxis
-                domain={
-                  card.dataKey === "temperature"
-                    ? [0, 80]
-                    : card.dataKey === "ph"
-                      ? [0, 14]
-                      : card.dataKey === "dissolved_oxygen"
-                        ? [0, 20]
-                        : [0, 30]
-                }
-              />
+              <YAxis />
               <Tooltip
                 labelFormatter={(value: any) =>
                   format(new Date(value), "yyyy-MM-dd HH:mm")
