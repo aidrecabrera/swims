@@ -42,10 +42,10 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState("");
   const [data, setData] = useState<TSwims[]>([]);
   const [calibrationValues, setCalibrationValues] = useState({
-    ph: 5,
+    ph: 10,
     temperature: 0,
     dissolved_oxygen: 0,
-    salinity: 0,
+    salinity: -0.18,
   });
 
   const fetchSwimsData = async () => {

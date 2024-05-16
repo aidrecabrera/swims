@@ -1,65 +1,61 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { supabase } from "@/services/supabaseClient"
-import { Link } from "@tanstack/react-router"
-import { createFileRoute } from '@tanstack/react-router'
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/services/supabaseClient";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute("/login")({
   component: Login,
-})
-
+});
 
 const formSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).max(50),
-})
+  password: z.string().min(5).max(50),
+});
 
 function Login() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: undefined,
-      password: undefined,
+      email: "omartiboron@swims.org",
+      password: "12345678",
     },
-  })
-
+  });
+  const navigate = useNavigate({ from: "/login" });
   const handleLogin = async (credentials: z.infer<typeof formSchema>) => {
-    if (!form.formState.isValid) {
-      return
-    }
-    const { data, error } = await supabase.auth.signInWithPassword(credentials)
+    const { data, error } = await supabase.auth.signInWithPassword(credentials);
+    console.log(data);
     if (error) {
-      console.error(error)
+      console.error(error);
     } else {
-      console.log(data)
+      navigate({
+        to: "/dashboard",
+      });
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-8">
-        <div className="h-screen w-screen flex flex-row items-center justify-center">
-          <Card className="mx-auto max-w-sm">
+        <div className="flex flex-row items-center justify-center w-screen h-screen">
+          <Card className="max-w-sm mx-auto">
             <CardHeader>
               <CardTitle className="text-2xl">Login</CardTitle>
               <CardDescription>
@@ -76,7 +72,7 @@ function Login() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="shadcn" {...field} />
+                          <Input placeholder="example@mail.com" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -91,18 +87,22 @@ function Login() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input placeholder="shadcn"  {...field} />
+                          <Input
+                            type="password"
+                            placeholder="********"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <Button type="submit" className="w-full" onClick={handleLogin}>
+                <Button type="submit" className="w-full">
                   Login
                 </Button>
               </div>
-              <div className="mt-4 text-center text-sm">
+              <div className="mt-4 text-sm text-center">
                 Don&apos;t have an account?{" "}
                 <Link to="/register" className="underline">
                   Sign up
@@ -113,5 +113,5 @@ function Login() {
         </div>
       </form>
     </Form>
-  )
+  );
 }
