@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,16 +8,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { CircleUser, Menu, Package2, Search } from "lucide-react";
+import { Menu, Package2 } from "lucide-react";
 
 export const Route = createRootRoute({
   component: () => (
     <>
-      <header className="sticky top-0 flex items-center h-16 gap-4 px-4 border-b bg-background md:px-6">
+      <header className="sticky top-0 z-50 flex items-center h-16 gap-4 px-4 border-b bg-background md:px-6">
         <nav className="flex-col hidden gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link
             href="#"
@@ -26,28 +26,10 @@ export const Route = createRootRoute({
             <span className="sr-only">Acme Inc</span>
           </Link>
           <Link
-            href="#"
+            to="/dashboard"
             className="transition-colors text-foreground hover:text-foreground"
           >
             Dashboard
-          </Link>
-          <Link
-            href="#"
-            className="transition-colors text-muted-foreground hover:text-foreground"
-          >
-            Orders
-          </Link>
-          <Link
-            href="#"
-            className="transition-colors text-muted-foreground hover:text-foreground"
-          >
-            Products
-          </Link>
-          <Link
-            href="#"
-            className="transition-colors text-muted-foreground hover:text-foreground"
-          >
-            Customers
           </Link>
           <Link
             href="#"
@@ -107,20 +89,17 @@ export const Route = createRootRoute({
           </SheetContent>
         </Sheet>
         <div className="flex items-center w-full gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="flex-1 ml-auto sm:flex-initial">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-              />
-            </div>
-          </form>
+          <div className="flex-1 ml-auto sm:flex-initial"></div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="w-5 h-5" />
+                <Avatar>
+                  <AvatarImage
+                    src="https://scontent.fdvo5-1.fna.fbcdn.net/v/t39.30808-6/327453272_6480450331984457_5221426715715363680_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=5f2048&_nc_ohc=VgHjmJmc2IMQ7kNvgENcrno&_nc_ht=scontent.fdvo5-1.fna&oh=00_AYBoKWDUKyLJqFD5o9UcPu_PwBbyn6Scc5d9RCNnfTqQQQ&oe=664C1ED6"
+                    alt="@shadcn"
+                  />
+                  <AvatarFallback>SWM</AvatarFallback>
+                </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>

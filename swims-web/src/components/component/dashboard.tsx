@@ -1,4 +1,3 @@
-// App.js
 import { supabase } from "@/services/supabaseClient";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -32,20 +31,22 @@ const Dashboard = () => {
   const [data, setData] = useState<TSwims[]>([]);
 
   const fetchSwimsData = async () => {
-    const { data: sensor_data, error } = await supabase
+    const { data: sensorData, error } = await supabase
       .from("sensor_data")
       .select("*")
       .range(1000, 7000);
+
     if (error) {
       console.error("Error fetching data:", error.message);
     }
-    return sensor_data;
+
+    return sensorData;
   };
 
   useEffect(() => {
-    fetchSwimsData().then((sensor_data) => {
-      if (sensor_data) {
-        setData(sensor_data);
+    fetchSwimsData().then((sensorData) => {
+      if (sensorData) {
+        setData(sensorData);
       }
     });
   }, []);
@@ -62,12 +63,16 @@ const Dashboard = () => {
     } else if (end) {
       return itemDate <= end;
     }
+
     return true;
   });
 
   const latestMeasurement = data[data.length - 1];
 
-  function calculateChange(currentMeasurement: number, measurements: any[]) {
+  const calculateChange = (
+    currentMeasurement: number,
+    measurements: TSwims[]
+  ) => {
     const oneHourAgo = new Date();
     oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
@@ -84,8 +89,9 @@ const Dashboard = () => {
         parseFloat(lastHourMeasurement.temperature!)) *
       100;
 
-    return change.toFixed(2) as any;
-  }
+    return change.toFixed(2);
+  };
+
   return (
     <div className="container p-4 mx-auto">
       {latestMeasurement && (
@@ -94,37 +100,46 @@ const Dashboard = () => {
             key={`${latestMeasurement.id}-temperature`}
             title="Temperature"
             count={parseFloat(latestMeasurement.temperature!)}
-            change={calculateChange(
-              parseFloat(latestMeasurement.temperature!),
-              data
-            )}
+            change={
+              calculateChange(
+                parseFloat(latestMeasurement.temperature!),
+                data
+              ) as any
+            }
           />
           <RecentMetricsCard
             key={`${latestMeasurement.id}-ph`}
             title="pH"
             count={parseFloat(latestMeasurement.ph!)}
-            change={calculateChange(parseFloat(latestMeasurement.ph!), data)}
+            change={
+              calculateChange(parseFloat(latestMeasurement.ph!), data) as any
+            }
           />
           <RecentMetricsCard
             key={`${latestMeasurement.id}-dissolved_oxygen`}
             title="Dissolved Oxygen"
             count={parseFloat(latestMeasurement.dissolved_oxygen!)}
-            change={calculateChange(
-              parseFloat(latestMeasurement.dissolved_oxygen!),
-              data
-            )}
+            change={
+              calculateChange(
+                parseFloat(latestMeasurement.dissolved_oxygen!),
+                data
+              ) as any
+            }
           />
           <RecentMetricsCard
             key={`${latestMeasurement.id}-salinity`}
             title="Salinity"
             count={parseFloat(latestMeasurement.salinity!)}
-            change={calculateChange(
-              parseFloat(latestMeasurement.salinity!),
-              data
-            )}
+            change={
+              calculateChange(
+                parseFloat(latestMeasurement.salinity!),
+                data
+              ) as any
+            }
           />
         </div>
       )}
+
       <div className="flex flex-col items-center mb-4 sm:flex-row">
         <label htmlFor="startDate" className="mb-2 mr-2 sm:mb-0">
           Start Date:
@@ -148,7 +163,8 @@ const Dashboard = () => {
           className="px-2 py-1 border border-gray-300 rounded"
         />
       </div>
-      {/* combined charts */}
+
+      {/* Combined charts */}
       <div className="my-4">
         <Card>
           <CardHeader>
@@ -212,7 +228,8 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-      {/* For individual charts */}
+
+      {/* Individual charts */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <IndividualChart filteredData={filteredData} />
       </div>
@@ -233,11 +250,7 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
       dataKey: "temperature",
       stroke: "#8884d8",
     },
-    {
-      title: "pH",
-      dataKey: "ph",
-      stroke: "#82ca9d",
-    },
+    { title: "pH", dataKey: "ph", stroke: "#82ca9d" },
     {
       title: "Dissolved Oxygen",
       dataKey: "dissolved_oxygen",
@@ -251,7 +264,7 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
   ];
 
   return cardData.map((card) => (
-    <Card className="col-span-3">
+    <Card key={card.title} className="col-span-3">
       <CardHeader>
         <h2 className="mb-4 text-xl font-bold">{card.title}</h2>
       </CardHeader>
@@ -315,7 +328,17 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
                 dataKey="timestamp"
                 tickFormatter={(value: any) => format(new Date(value), "HH:mm")}
               />
-              <YAxis />
+              <YAxis
+                domain={
+                  card.dataKey === "temperature"
+                    ? [0, 80]
+                    : card.dataKey === "ph"
+                      ? [0, 14]
+                      : card.dataKey === "dissolved_oxygen"
+                        ? [0, 20]
+                        : [0, 30]
+                }
+              />
               <Tooltip
                 labelFormatter={(value: any) =>
                   format(new Date(value), "yyyy-MM-dd HH:mm")
@@ -323,7 +346,6 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
               />
               <Legend />
               <Area
-                type="basisClosed"
                 dataKey={card.dataKey}
                 stroke={card.stroke}
                 fill={card.stroke}
