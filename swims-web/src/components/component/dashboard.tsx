@@ -1,3 +1,15 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/services/supabaseClient";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -13,7 +25,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import RecentMetricsCard from "./recent-metric-card";
 
@@ -62,20 +73,33 @@ const Dashboard = () => {
         sensorData = sensorData.map((data: TSwims) => {
           if (data.ph) {
             data.ph = (Number(data.ph) - calibrationValues.ph).toFixed(2);
+            data.ph = Math.max(0, Math.min(Number(data.ph), 14)).toFixed(2);
           }
           if (data.temperature) {
             data.temperature = (
               Number(data.temperature) + calibrationValues.temperature
+            ).toFixed(2);
+            data.temperature = Math.max(
+              0,
+              Math.min(Number(data.temperature), 100)
             ).toFixed(2);
           }
           if (data.dissolved_oxygen) {
             data.dissolved_oxygen = (
               Number(data.dissolved_oxygen) + calibrationValues.dissolved_oxygen
             ).toFixed(2);
+            data.dissolved_oxygen = Math.max(
+              0,
+              Math.min(Number(data.dissolved_oxygen), 100)
+            ).toFixed(2);
           }
           if (data.salinity) {
             data.salinity = (
               Number(data.salinity) + calibrationValues.salinity
+            ).toFixed(2);
+            data.salinity = Math.max(
+              0,
+              Math.min(Number(data.salinity), 100)
             ).toFixed(2);
           }
           return data;
@@ -85,16 +109,14 @@ const Dashboard = () => {
     });
   }, [calibrationValues]);
 
-  const handleCalibration = (type: keyof typeof calibrationValues) => {
-    const newCalibrationValue = prompt(
-      `Enter new calibration value for ${type}:`
-    );
-    if (newCalibrationValue) {
-      setCalibrationValues((prevValues) => ({
-        ...prevValues,
-        [type]: Number(newCalibrationValue),
-      }));
-    }
+  const handleCalibration = (
+    type: keyof typeof calibrationValues,
+    value: number
+  ) => {
+    setCalibrationValues((prevValues) => ({
+      ...prevValues,
+      [type]: value,
+    }));
   };
 
   const filteredData = data.filter((item) => {
@@ -216,20 +238,10 @@ const Dashboard = () => {
             />
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => handleCalibration("ph")}>
-            Calibrate pH: {calibrationValues.ph}
-          </Button>
-          <Button onClick={() => handleCalibration("temperature")}>
-            Calibrate Temperature: {calibrationValues.temperature}
-          </Button>
-          <Button onClick={() => handleCalibration("dissolved_oxygen")}>
-            Calibrate Dissolved Oxygen: {calibrationValues.dissolved_oxygen}
-          </Button>
-          <Button onClick={() => handleCalibration("salinity")}>
-            Calibrate Salinity: {calibrationValues.salinity}
-          </Button>
-        </div>
+        <DialogDemo
+          calibrationValues={calibrationValues}
+          handleCalibration={handleCalibration}
+        />
       </div>
 
       {/* Combined charts */}
@@ -337,81 +349,109 @@ const IndividualChart: React.FC<IndividualChartProps> = ({ filteredData }) => {
         <h2 className="mb-4 text-xl font-bold">{card.title}</h2>
       </CardHeader>
       <CardContent>
-        {card.dataKey === "ph" ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              margin={{
-                top: 0,
-                right: 0,
-                left: -25,
-                bottom: 0,
-              }}
-              data={filteredData.map((item) => ({
-                ...item,
-                ph: (Number(item.ph ?? 0) - 5 > 14
-                  ? 14
-                  : Number(item.ph ?? 0) - 5
-                ).toFixed(2),
-              }))}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={(value: any) => format(new Date(value), "HH:mm")}
-              />
-              <YAxis domain={[0, 20]} />
-              <Tooltip
-                labelFormatter={(value: any) =>
-                  format(new Date(value), "yyyy-MM-dd HH:mm")
-                }
-              />
-              <Legend />
-              <defs>
-                <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0.5" stopColor="green" stopOpacity={1} />
-                  <stop offset="0.5" stopColor="red" stopOpacity={1} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="basisClosed"
-                dataKey={card.dataKey}
-                stroke={card.stroke}
-                fill="url(#splitColor)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart
-              margin={{
-                top: 0,
-                right: 0,
-                left: -25,
-                bottom: 0,
-              }}
-              data={filteredData}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="timestamp"
-                tickFormatter={(value: any) => format(new Date(value), "HH:mm")}
-              />
-              <YAxis />
-              <Tooltip
-                labelFormatter={(value: any) =>
-                  format(new Date(value), "yyyy-MM-dd HH:mm")
-                }
-              />
-              <Legend />
-              <Area
-                dataKey={card.dataKey}
-                stroke={card.stroke}
-                fill={card.stroke}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart
+            margin={{
+              top: 0,
+              right: 0,
+              left: -25,
+              bottom: 0,
+            }}
+            data={filteredData}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="timestamp"
+              tickFormatter={(value: any) => format(new Date(value), "HH:mm")}
+            />
+            <YAxis
+              domain={
+                card.title === "Temperature"
+                  ? [0, 80]
+                  : card.title === "pH"
+                    ? [0, 17]
+                    : card.title === "Dissolved Oxygen"
+                      ? [0, 20]
+                      : card.title === "Salinity"
+                        ? [0, 70]
+                        : [0, 100]
+              }
+            />
+            <Tooltip
+              labelFormatter={(value: any) =>
+                format(new Date(value), "yyyy-MM-dd HH:mm")
+              }
+            />
+            <Legend />
+            <Area
+              dataKey={card.dataKey}
+              stroke={card.stroke}
+              fill={card.stroke}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   ));
+};
+
+const DialogDemo = ({
+  calibrationValues,
+  handleCalibration,
+}: {
+  calibrationValues: any;
+  handleCalibration: any;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [tempValues, setTempValues] = useState(calibrationValues);
+
+  const handleInputChange = (e: any) => {
+    const { name, value } = e.target;
+    setTempValues((prevValues: any) => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    for (const key in tempValues) {
+      handleCalibration(key, Number(tempValues[key]));
+    }
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Open Calibration Dialog</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Calibration Values</DialogTitle>
+          <DialogDescription>
+            Make changes to the calibration values. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          {Object.keys(calibrationValues).map((key) => (
+            <div key={key} className="flex flex-col space-y-1">
+              <Label htmlFor={key}>
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+              </Label>
+              <Input
+                id={key}
+                name={key}
+                type="number"
+                value={tempValues[key]}
+                onChange={handleInputChange}
+              />
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSave}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 };
