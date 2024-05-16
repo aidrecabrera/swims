@@ -1,23 +1,23 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/register')({
+export const Route = createFileRoute("/register")({
   component: Register,
-})
+});
 
 export function Register() {
   return (
-    <div className='h-screen justify-center items-center flex flex-row'>
-      <Card className="mx-auto max-w-sm">
+    <div className="flex flex-row items-center justify-center h-screen">
+      <Card className="max-w-sm mx-auto">
         <CardHeader>
           <CardTitle className="text-xl">Sign Up</CardTitle>
           <CardDescription>
@@ -53,14 +53,14 @@ export function Register() {
               Create an account
             </Button>
           </div>
-          <div className="mt-4 text-center text-sm">
+          <div className="mt-4 text-sm text-center">
             Already have an account?{" "}
-            <Link to='/login' className="underline">
+            <Link to="/login" className="underline">
               Sign in
             </Link>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
