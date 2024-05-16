@@ -270,7 +270,7 @@ export function SwimsLandingPage() {
   );
 }
 
-function CheckIcon(props) {
+function CheckIcon(props: any) {
   return (
     <svg
       {...props}
@@ -289,7 +289,7 @@ function CheckIcon(props) {
   );
 }
 
-function ChevronDownIcon(props) {
+function ChevronDownIcon(props: any) {
   return (
     <svg
       {...props}
@@ -308,7 +308,7 @@ function ChevronDownIcon(props) {
   );
 }
 
-function DropletsIcon(props) {
+function DropletsIcon(props: any) {
   return (
     <svg
       {...props}
