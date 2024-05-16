@@ -32,7 +32,7 @@ export const Route = createRootRoute({
             Dashboard
           </Link>
           <Link
-            href="#"
+            to="/historical"
             className="transition-colors text-muted-foreground hover:text-foreground"
           >
             Analytics

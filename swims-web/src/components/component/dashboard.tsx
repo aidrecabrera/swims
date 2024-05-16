@@ -13,13 +13,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import RecentMetricsCard from "./recent-metric-card";
 
 export type TSwims = {
   id?: string;
   temperature?: string;
-  ph?: string;
+  ph?: string | number;
   dissolved_oxygen?: string;
   salinity?: string;
   timestamp?: any;
@@ -29,27 +30,72 @@ const Dashboard = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [data, setData] = useState<TSwims[]>([]);
+  const [calibrationValues, setCalibrationValues] = useState({
+    ph: 5,
+    temperature: 0,
+    dissolved_oxygen: 0,
+    salinity: 0,
+  });
 
   const fetchSwimsData = async () => {
-    const { data: sensorData, error } = await supabase
-      .from("sensor_data")
-      .select("*")
-      .range(1000, 7000);
+    let sensorData = localStorage.getItem("sensorData");
+    if (sensorData) {
+      return JSON.parse(sensorData);
+    } else {
+      const { data: sensorData, error } = await supabase
+        .from("sensor_data")
+        .select("*");
 
-    if (error) {
-      console.error("Error fetching data:", error.message);
+      if (error) {
+        console.error("Error fetching data:", error.message);
+      } else {
+        localStorage.setItem("sensorData", JSON.stringify(sensorData));
+      }
+
+      return sensorData;
     }
-
-    return sensorData;
   };
 
   useEffect(() => {
     fetchSwimsData().then((sensorData) => {
-      if (sensorData) {
+      if (Array.isArray(sensorData)) {
+        sensorData = sensorData.map((data: TSwims) => {
+          if (data.ph) {
+            data.ph = (Number(data.ph) - calibrationValues.ph).toFixed(2);
+          }
+          if (data.temperature) {
+            data.temperature = (
+              Number(data.temperature) + calibrationValues.temperature
+            ).toFixed(2);
+          }
+          if (data.dissolved_oxygen) {
+            data.dissolved_oxygen = (
+              Number(data.dissolved_oxygen) + calibrationValues.dissolved_oxygen
+            ).toFixed(2);
+          }
+          if (data.salinity) {
+            data.salinity = (
+              Number(data.salinity) + calibrationValues.salinity
+            ).toFixed(2);
+          }
+          return data;
+        });
         setData(sensorData);
       }
     });
-  }, []);
+  }, [calibrationValues]);
+
+  const handleCalibration = (type: keyof typeof calibrationValues) => {
+    const newCalibrationValue = prompt(
+      `Enter new calibration value for ${type}:`
+    );
+    if (newCalibrationValue) {
+      setCalibrationValues((prevValues) => ({
+        ...prevValues,
+        [type]: Number(newCalibrationValue),
+      }));
+    }
+  };
 
   const filteredData = data.filter((item) => {
     const itemDate = new Date(item.timestamp);
@@ -110,9 +156,12 @@ const Dashboard = () => {
           <RecentMetricsCard
             key={`${latestMeasurement.id}-ph`}
             title="pH"
-            count={parseFloat(latestMeasurement.ph!)}
+            count={parseFloat(latestMeasurement.ph! as string)}
             change={
-              calculateChange(parseFloat(latestMeasurement.ph!), data) as any
+              calculateChange(
+                parseFloat(latestMeasurement.ph! as string),
+                data
+              ) as any
             }
           />
           <RecentMetricsCard
@@ -140,28 +189,47 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="flex flex-col items-center mb-4 sm:flex-row">
-        <label htmlFor="startDate" className="mb-2 mr-2 sm:mb-0">
-          Start Date:
-        </label>
-        <input
-          type="date"
-          id="startDate"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="px-2 py-1 mb-2 border border-gray-300 rounded sm:mb-0 sm:mr-4"
-        />
-
-        <label htmlFor="endDate" className="mb-2 mr-2 sm:mb-0">
-          End Date:
-        </label>
-        <input
-          type="date"
-          id="endDate"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="px-2 py-1 border border-gray-300 rounded"
-        />
+      <div className="flex flex-col justify-between lg:flex-row">
+        <div className="flex flex-row items-center gap-2 mb-4 md:flex-row lg:flex-row sm:flex-row">
+          <div>
+            <label htmlFor="startDate" className="mb-0 mr-2 sm:mb-0">
+              Start Date:
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-2 border border-gray-300 rounded sm:mb-0 sm:mr-4"
+            />
+          </div>
+          <div>
+            <label htmlFor="endDate" className="mb-0 mr-2 sm:mb-0">
+              End Date:
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-2 border border-gray-300 rounded"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => handleCalibration("ph")}>
+            Calibrate pH: {calibrationValues.ph}
+          </Button>
+          <Button onClick={() => handleCalibration("temperature")}>
+            Calibrate Temperature: {calibrationValues.temperature}
+          </Button>
+          <Button onClick={() => handleCalibration("dissolved_oxygen")}>
+            Calibrate Dissolved Oxygen: {calibrationValues.dissolved_oxygen}
+          </Button>
+          <Button onClick={() => handleCalibration("salinity")}>
+            Calibrate Salinity: {calibrationValues.salinity}
+          </Button>
+        </div>
       </div>
 
       {/* Combined charts */}
